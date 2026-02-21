@@ -2,8 +2,18 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoginLayout from '../../components/layout/LoginLayout';
 import Button from '../../components/shared/Button';
-import EmojiCodeInput from '../../components/shared/EmojiCodeInput';
+import EmojiCodeInput, { EMOJI_OPTIONS } from '../../components/shared/EmojiCodeInput';
 import { generateClassCode } from '../../services/api';
+
+const generateRandomEmojiCode = () => {
+  const pool = [...EMOJI_OPTIONS];
+  const randomCode = [];
+  while (randomCode.length < 5 && pool.length) {
+    const index = Math.floor(Math.random() * pool.length);
+    randomCode.push(pool.splice(index, 1)[0]);
+  }
+  return randomCode;
+};
 
 export default function TFGenerate() {
   const navigate = useNavigate();
@@ -15,8 +25,8 @@ export default function TFGenerate() {
     async function generate() {
       try {
         const result = await generateClassCode();
-        // TODO: Use result.classCode from backend. Using placeholder for now.
-        setCode(result.classCode || ['🥷', '😂', '💀', '🙈', '🌍']);
+        // TODO: Backend - store class code
+        setCode(result.classCode || generateRandomEmojiCode());
       } catch {
         setCode(['❓', '❓', '❓', '❓', '❓']);
       } finally {
