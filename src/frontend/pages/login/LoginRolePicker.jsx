@@ -16,7 +16,7 @@ export default function LoginRolePicker() {
     <LoginLayout>
       <div className="max-w-sm w-full text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Get started with scheduling
+          Get started with course scheduling
         </h1>
         <p className="text-gray-500 mb-8">
           Select your role below to get started
@@ -38,7 +38,7 @@ export default function LoginRolePicker() {
             ★ Teaching Fellow (TF)
           </Button>
         </div>
-
+        {/* TODO: Link to github */}
         <p className="mt-12 text-sm text-gray-400">
           Learn more about ISpyScheduling ↗
         </p>

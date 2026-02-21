@@ -1,7 +1,6 @@
 import { useEffect, useCallback } from 'react';
 
-// TODO: User to confirm exact emoji set. These map to digits 1-9.
-const EMOJI_OPTIONS = ['🥷', '🤠', '😂', '💀', '🙈', '😁', '👁️', '🕵️', '🌍'];
+const EMOJI_OPTIONS = ['🕵️', '🥸', '🦸', '🔍', '💀', '🙈', '👁️', '🥷', '🚓'];
 
 export default function EmojiCodeInput({ value = [], onChange, disabled = false }) {
   const handleEmojiClick = useCallback((emoji) => {
