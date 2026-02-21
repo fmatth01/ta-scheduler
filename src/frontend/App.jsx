@@ -1,35 +1,28 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route } from 'react-router-dom';
+import LoginRolePicker from './pages/login/LoginRolePicker';
+import TAJoin from './pages/login/TAJoin';
+import TFChoice from './pages/login/TFChoice';
+import TFGenerate from './pages/login/TFGenerate';
+import TFJoin from './pages/login/TFJoin';
+import ScheduleBuilder from './pages/ta/ScheduleBuilder';
+import TAViewer from './pages/ta/TAViewer';
+import ScheduleConfig from './pages/tf/ScheduleConfig';
+import TFViewer from './pages/tf/TFViewer';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      <Route path="/" element={<LoginRolePicker />} />
+      <Route path="/login/ta" element={<TAJoin />} />
+      <Route path="/login/tf" element={<TFChoice />} />
+      <Route path="/login/tf/generate" element={<TFGenerate />} />
+      <Route path="/login/tf/join" element={<TFJoin />} />
+      <Route path="/builder" element={<ScheduleBuilder />} />
+      <Route path="/viewer" element={<TAViewer />} />
+      <Route path="/config" element={<ScheduleConfig />} />
+      <Route path="/tf/viewer" element={<TFViewer />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
