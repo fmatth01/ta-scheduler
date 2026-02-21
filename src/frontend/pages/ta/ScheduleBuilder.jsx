@@ -65,7 +65,7 @@ export default function ScheduleBuilder() {
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           placeholder="John Smith"
-          className={`w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint-400 ${
+          className={`w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint ${
             error && !fullName.trim() ? 'border-red-400' : 'border-gray-300'
           }`}
         />
@@ -95,7 +95,7 @@ export default function ScheduleBuilder() {
               name="labLead"
               checked={labLead === true}
               onChange={() => setLabLead(true)}
-              className="accent-mint-500"
+              className="accent-mint"
             />
             Yes
           </label>
@@ -105,7 +105,7 @@ export default function ScheduleBuilder() {
               name="labLead"
               checked={labLead === false}
               onChange={() => setLabLead(false)}
-              className="accent-mint-500"
+              className="accent-mint"
             />
             No
           </label>
@@ -123,7 +123,7 @@ export default function ScheduleBuilder() {
               name="labAssistant"
               checked={labAssistant === true}
               onChange={() => setLabAssistant(true)}
-              className="accent-mint-500"
+              className="accent-mint"
             />
             Yes
           </label>
@@ -133,7 +133,7 @@ export default function ScheduleBuilder() {
               name="labAssistant"
               checked={labAssistant === false}
               onChange={() => setLabAssistant(false)}
-              className="accent-mint-500"
+              className="accent-mint"
             />
             No
           </label>

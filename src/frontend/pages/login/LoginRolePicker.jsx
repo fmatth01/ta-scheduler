@@ -14,25 +14,25 @@ export default function LoginRolePicker() {
 
   return (
     <LoginLayout>
-      <div className="max-w-sm w-full text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Get started with course scheduling
+      <div className="w-full text-center">
+        <h1 className="text-5xl font-bold text-gray-900 mb-2">
+          Get started with scheduling
         </h1>
-        <p className="text-gray-500 mb-8">
+        <p className="text-lg text-gray-500 mb-8">
           Select your role below to get started
         </p>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 w-[384px] justify-self-center">
           <Button
             variant="primary"
-            className="w-full py-3"
+            className="w-full py-3 text-lg"
             onClick={() => handleRoleSelect('ta')}
           >
             ★ Teaching Assistant (TA)
           </Button>
           <Button
             variant="primary"
-            className="w-full py-3"
+            className="w-full py-3 text-lg"
             onClick={() => handleRoleSelect('tf')}
           >
             ★ Teaching Fellow (TF)

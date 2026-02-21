@@ -8,7 +8,7 @@ export default function RoleToggle({ options, value, onChange }) {
           className={`
             px-4 py-2 text-sm font-medium transition-colors cursor-pointer
             ${value === option
-              ? 'bg-mint-500 text-white'
+              ? 'bg-mint text-white'
               : 'bg-white text-gray-700 hover:bg-gray-50'
             }
           `}

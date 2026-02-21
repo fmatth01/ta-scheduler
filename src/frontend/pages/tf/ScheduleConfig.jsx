@@ -70,7 +70,7 @@ export default function ScheduleConfig() {
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           placeholder="John Smith"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint-400"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint"
         />
       </div>
 
@@ -92,7 +92,7 @@ export default function ScheduleConfig() {
           type="time"
           value={config.earliestStart}
           onChange={(e) => updateConfig({ earliestStart: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint-400"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint"
         />
       </div>
 
@@ -102,7 +102,7 @@ export default function ScheduleConfig() {
           type="time"
           value={config.latestEnd}
           onChange={(e) => updateConfig({ latestEnd: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint-400"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint"
         />
       </div>
 
@@ -116,7 +116,7 @@ export default function ScheduleConfig() {
           onChange={(e) => updateConfig({ slotDuration: parseInt(e.target.value) || 30 })}
           min={15}
           step={15}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint-400"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint"
         />
       </div>
 
@@ -127,7 +127,7 @@ export default function ScheduleConfig() {
           value={config.tasPerShift}
           onChange={(e) => updateConfig({ tasPerShift: parseInt(e.target.value) || 1 })}
           min={1}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint-400"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint"
         />
       </div>
 

@@ -27,12 +27,12 @@ export default function ChipInput({ value = [], onChange, placeholder = 'Type an
       {value.map((chip, i) => (
         <span
           key={i}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-mint-500 text-white text-xs font-medium"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-mint text-white text-xs font-medium"
         >
           {chip}
           <button
             onClick={() => removeChip(i)}
-            className="hover:bg-mint-600 rounded-full w-4 h-4 flex items-center justify-center cursor-pointer"
+            className="hover:bg-mint rounded-full w-4 h-4 flex items-center justify-center cursor-pointer"
           >
             &times;
           </button>

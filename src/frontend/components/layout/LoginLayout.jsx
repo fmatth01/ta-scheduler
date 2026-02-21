@@ -4,8 +4,9 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 export default function LoginLayout({ children }) {
   return (
     <div className="flex h-screen">
-      <div className="w-[40%] bg-gradient-to-b from-mint-200 to-mint-100 relative flex flex-col items-center justify-end overflow-hidden">
-        <Logo className="absolute top-6 left-6" />
+      <div className="w-[40%] bg-mint relative flex flex-col items-center justify-end overflow-hidden">
+        <Logo className="absolute top-10 left-10" />
+        
         <DotLottieReact
           src="https://lottie.host/1fd7514c-8d60-4e55-b0f7-691efcdb08cf/GLO8UH8RBj.lottie"
           loop
