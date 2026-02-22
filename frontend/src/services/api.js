@@ -52,8 +52,9 @@ export async function generateTemplate(config) {
   return new Promise((resolve) => setTimeout(() => resolve({}), 500));
 }
 
-export async function publishSchedule(templateSlots) {
-  // TODO: POST /api/tf/publish { templateSlots }
+export async function publishSchedule(templateSlots, config) {
+  // TODO: POST /api/tf/publish { templateSlots, config }
+  // config includes: { earliestStart, latestEnd, slotDuration, tasPerShift, approvedTFs }
   // Should return: { success: true, schedule: [...] }
   return new Promise((resolve) => setTimeout(() => resolve({}), 500));
 }

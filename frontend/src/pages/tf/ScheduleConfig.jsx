@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../../components/layout/AppLayout';
 import Button from '../../components/shared/Button';
@@ -39,6 +39,7 @@ export default function ScheduleConfig() {
   const [generating, setGenerating] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState('');
+  const didAutoPopulate = useRef(false);
   const SLOT_DURATION_OPTIONS = [30, 45, 60, 75, 90];
   const slotMinutes = config.slotDuration || 90;
   const startHour = config.earliestStart ? parseInt(config.earliestStart) : 9;
@@ -65,7 +66,7 @@ export default function ScheduleConfig() {
     setPublishing(true);
     setError('');
     try {
-      await publishSchedule(templateSlots);
+      await publishSchedule(templateSlots, config);
       navigate('/tf/viewer');
     } catch {
       setError('Failed to publish schedule.');
@@ -86,6 +87,20 @@ export default function ScheduleConfig() {
   const handleClearCalendar = () => {
     clearTemplate();
   };
+
+  useEffect(() => {
+    if (didAutoPopulate.current) return;
+    didAutoPopulate.current = true;
+
+    if (Object.keys(templateSlots).length === 0) {
+      const times = generateTimeSlots(startHour, endHour, slotMinutes);
+      DAYS.forEach((day) => {
+        times.forEach((time) => {
+          setTemplateSlot(day, time, 'oh');
+        });
+      });
+    }
+  }, [templateSlots, startHour, endHour, slotMinutes, setTemplateSlot]);
 
   const sidebar = (
     <>
@@ -172,13 +187,19 @@ export default function ScheduleConfig() {
   return (
     <AppLayout sidebar={sidebar}>
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">TA Schedule Configuration</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          TA Schedule Configuration
+        </h1>
+        
         <div className="flex items-center gap-4 mb-2">
           <div className="bg-shift-blue py-1 px-7 rounded-xl font-semibold text-white text-lg">
             Office Hours
           </div>
           <div className="bg-shift-yellow py-1 px-7 rounded-xl font-semibold text-white text-lg">
             Lab Shifts
+          </div>
+          <div className="bg-white py-1 px-7 rounded-xl font-semibold text-black text-lg shadow-md border border-gray-200">
+            Empty
           </div>
         </div>
         <p className="text-lg text-gray-500 italic">

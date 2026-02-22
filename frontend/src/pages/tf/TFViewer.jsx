@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../../components/layout/AppLayout';
 import Button from '../../components/shared/Button';
-import RoleToggle from '../../components/shared/RoleToggle';
 import ShiftCard from '../../components/shared/ShiftCard';
 import ScheduleGrid from '../../components/shared/ScheduleGrid';
 import { useSchedule } from '../../contexts/ScheduleContext';
@@ -10,7 +9,7 @@ import { getTFSchedule, copyScheduleAsText } from '../../services/api';
 
 export default function TFViewer() {
   const navigate = useNavigate();
-  const { schedule, setSchedule } = useSchedule();
+  const { schedule, setSchedule, config } = useSchedule();
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState('Office Hours');
   const [copied, setCopied] = useState(false);
@@ -39,7 +38,6 @@ export default function TFViewer() {
 
   schedule.forEach((shift) => {
     const card = {
-      date: shift.date || '',
       day: shift.day || '',
       startTime: shift.startTime || '',
       endTime: shift.endTime || '',
@@ -56,6 +54,122 @@ export default function TFViewer() {
     // TODO: Populate gridData and tooltipData from shift time ranges
   });
 
+  // Placeholder shifts for empty state
+  if (ohShifts.length === 0) {
+    ohShifts.push(
+      {
+        day: 'Mon',
+        startTime: '10:00',
+        endTime: '12:00',
+        type: 'oh',
+        assignedTAs: ['alice01', 'bobby02'],
+      },
+      {
+        day: 'Mon',
+        startTime: '10:00',
+        endTime: '12:00',
+        type: 'oh',
+        assignedTAs: ['alice01', 'bobby02'],
+      },
+      {
+        day: 'Mon',
+        startTime: '10:00',
+        endTime: '12:00',
+        type: 'oh',
+        assignedTAs: ['alice01', 'bobby02'],
+      },
+      {
+        day: 'Mon',
+        startTime: '10:00',
+        endTime: '12:00',
+        type: 'oh',
+        assignedTAs: ['alice01', 'bobby02'],
+      },
+      {
+        day: 'Mon',
+        startTime: '10:00',
+        endTime: '12:00',
+        type: 'oh',
+        assignedTAs: ['alice01', 'bobby02'],
+      },
+      {
+        day: 'Mon',
+        startTime: '10:00',
+        endTime: '12:00',
+        type: 'oh',
+        assignedTAs: ['alice01', 'bobby02'],
+      },
+      {
+        day: 'Tue',
+        startTime: '14:00',
+        endTime: '16:00',
+        type: 'oh',
+        assignedTAs: ['bobbert01'],
+      }
+    );
+  }
+
+  if (labShifts.length === 0) {
+    labShifts.push(
+      {
+        day: 'Wed',
+        startTime: '11:00',
+        endTime: '13:00',
+        type: 'lab',
+        assignedTAs: ['blah12', 'wilson23'],
+      },
+      {
+        day: 'Wed',
+        startTime: '11:00',
+        endTime: '13:00',
+        type: 'lab',
+        assignedTAs: ['blah12', 'wilson23'],
+      },
+      {
+        day: 'Wed',
+        startTime: '11:00',
+        endTime: '13:00',
+        type: 'lab',
+        assignedTAs: ['blah12', 'wilson23'],
+      },
+      {
+        day: 'Wed',
+        startTime: '11:00',
+        endTime: '13:00',
+        type: 'lab',
+        assignedTAs: ['blah12', 'wilson23'],
+      },
+      {
+        day: 'Wed',
+        startTime: '11:00',
+        endTime: '13:00',
+        type: 'lab',
+        assignedTAs: ['blah12', 'wilson23'],
+      },
+      {
+        day: 'Wed',
+        startTime: '11:00',
+        endTime: '13:00',
+        type: 'lab',
+        assignedTAs: ['blah12', 'wilson23'],
+      },
+      {
+        day: 'Wed',
+        startTime: '11:00',
+        endTime: '13:00',
+        type: 'lab',
+        assignedTAs: ['blah12', 'wilson23'],
+      },
+      {
+        day: 'Thu',
+        startTime: '15:00',
+        endTime: '17:00',
+        type: 'lab',
+        assignedTAs: ['punch12'],
+      }
+    );
+  }
+
   const handleCopy = async () => {
     try {
       await copyScheduleAsText(schedule);
@@ -69,29 +183,37 @@ export default function TFViewer() {
   const sidebar = (
     <>
       <div>
-        <h2 className="text-sm font-bold text-gray-900 mb-3">Upcoming OH Shifts</h2>
-        {ohShifts.length === 0 ? (
-          <p className="text-xs text-gray-500 italic">No upcoming OH shifts</p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {ohShifts.map((shift, i) => (
-              <ShiftCard key={i} {...shift} />
-            ))}
+        <h2 className="text-xl font-bold text-gray-900 mb-3">Upcoming OH Shifts</h2>
+        <div className="bg-white rounded-lg min-h-40 overflow-hidden">
+          <div className="p-4 max-h-[30vh] overflow-y-auto">
+            {ohShifts.length === 0 ? (
+              <p className="text-md text-gray-500 italic text-center">No upcoming OH shifts</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {ohShifts.map((shift, i) => (
+                  <ShiftCard key={i} {...shift} />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       <div className="mt-4">
-        <h2 className="text-sm font-bold text-gray-900 mb-3">Upcoming Lab Shifts</h2>
-        {labShifts.length === 0 ? (
-          <p className="text-xs text-gray-500 italic">No upcoming lab shifts</p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {labShifts.map((shift, i) => (
-              <ShiftCard key={i} {...shift} />
-            ))}
+        <h2 className="text-xl font-bold text-gray-900 mb-3">Upcoming Lab Shifts</h2>
+        <div className="bg-white rounded-lg min-h-40 overflow-hidden">
+          <div className="p-4 max-h-[30vh] overflow-y-auto">
+            {labShifts.length === 0 ? (
+              <p className="text-md text-gray-500 italic text-center">No upcoming lab shifts</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {labShifts.map((shift, i) => (
+                  <ShiftCard key={i} {...shift} />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </>
   );
@@ -99,29 +221,20 @@ export default function TFViewer() {
   return (
     <AppLayout sidebar={sidebar}>
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-gray-900">
-            TA Schedule
-          </h1>
-          {/* TA avatars placeholder */}
-          <div className="flex -space-x-2">
-            {['A', 'B', 'C'].map((letter, i) => (
-              <div
-                key={i}
-                className="w-8 h-8 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-600"
-              >
-                {letter}
-              </div>
-            ))}
-          </div>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          TA Schedule Viewer
+        </h1>
 
-        <div className="flex items-center gap-4 mb-4">
-          <RoleToggle
-            options={['Office Hours', 'Lab Shifts']}
-            value={filterMode}
-            onChange={setFilterMode}
-          />
+        <div className="flex items-center gap-4 mb-6">
+          <div className="bg-shift-blue py-1 px-7 rounded-xl font-semibold text-white text-lg">
+            Office Hours
+          </div>
+          <div className="bg-shift-yellow py-1 px-7 rounded-xl font-semibold text-white text-lg">
+            Lab Shifts
+          </div>
+          <div className="bg-red-500 py-1 px-7 rounded-xl font-semibold text-white text-lg">
+            No Availability
+          </div>
         </div>
 
         {loading ? (
@@ -136,14 +249,17 @@ export default function TFViewer() {
             mode="tf-viewer"
             data={gridData}
             tooltipData={tooltipData}
+            startHour={config.earliestStart ? parseInt(config.earliestStart) : 9}
+            endHour={config.latestEnd === '00:00' ? 24 : parseInt(config.latestEnd || '24')}
+            slotMinutes={config.slotDuration || 30}
           />
         )}
 
-        <div className="mt-4 flex gap-3">
-          <Button variant="secondary" onClick={handleCopy}>
+        <div className="mt-4 flex justify-end gap-3">
+          <Button variant="primary" onClick={handleCopy} className="text-lg">
             {copied ? 'Copied!' : 'Copy as Text'}
           </Button>
-          <Button variant="primary" onClick={() => navigate('/config')}>
+          <Button variant="primary" onClick={() => navigate('/config')} className="text-lg">
             Configure
           </Button>
         </div>
