@@ -7,67 +7,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useSchedule } from '../../contexts/ScheduleContext';
 import { getTASchedule } from '../../services/api';
 
-function createDummyShifts(profile) {
-  const myName = profile.name || 'You';
-  const myUtlm = profile.utln || 'ta_demo01';
-  return [
-    {
-      day: 'Mon',
-      startTime: '09:00',
-      endTime: '10:30',
-      type: 'oh',
-      isMine: true,
-      assignedTAs: [{ name: myName, utln: myUtlm }],
-    },
-    {
-      day: 'Mon',
-      startTime: '10:30',
-      endTime: '12:00',
-      type: 'oh',
-      isMine: true,
-      assignedTAs: [{ name: myName, utln: myUtlm }],
-    },
-    {
-      day: 'Mon',
-      startTime: '12:00',
-      endTime: '1:30',
-      type: 'oh',
-      isMine: true,
-      assignedTAs: [{ name: myName, utln: myUtlm }],
-    },
-    {
-      day: 'Tue',
-      startTime: '12:00',
-      endTime: '13:30',
-      type: 'lab',
-      isMine: true,
-      assignedTAs: [{ name: myName, utln: myUtlm }],
-    },
-    {
-      day: 'Tue',
-      startTime: '13:30',
-      endTime: '15:00',
-      type: 'lab',
-      isMine: true,
-      assignedTAs: [{ name: myName, utln: myUtlm }],
-    },
-    {
-      day: 'Wed',
-      startTime: '15:00',
-      endTime: '16:30',
-      type: 'oh',
-      assignedTAs: [{ utln: 'other01', name: 'Priya Shah' }],
-    },
-    {
-      day: 'Thu',
-      startTime: '18:00',
-      endTime: '19:30',
-      type: 'lab',
-      assignedTAs: [{ utln: 'other02', name: 'Ethan Park' }],
-    },
-  ];
-}
-
 function getTALabel(ta) {
   if (!ta) return '';
   if (ta.name && ta.utln) return `${ta.name} (${ta.utln})`;
@@ -77,7 +16,7 @@ function getTALabel(ta) {
 export default function TAViewer() {
   const location = useLocation();
   const { utln, name } = useAuth();
-  const { schedule, setSchedule } = useSchedule();
+  const { schedule, setSchedule, config, updateConfig } = useSchedule();
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     myOh: true,
@@ -93,10 +32,10 @@ export default function TAViewer() {
     }
   }, []);
   const navProfile = location.state?.taProfile || {};
-  const userProfile = {
+  const userProfile = useMemo(() => ({
     name: (navProfile.name || storedProfile?.name || name || '').trim(),
     utln: (navProfile.utln || storedProfile?.utln || utln || '').trim(),
-  };
+  }), [navProfile.name, navProfile.utln, storedProfile?.name, storedProfile?.utln, name, utln]);
 
   useEffect(() => {
     if (!userProfile.name && !userProfile.utln) return;
@@ -105,25 +44,29 @@ export default function TAViewer() {
     } catch {
       // localStorage may be unavailable
     }
-  }, [userProfile.name, userProfile.utln]);
+  }, [userProfile]);
 
   useEffect(() => {
     async function fetchSchedule() {
+      const lookupUTLN = (userProfile.utln || utln || '').trim();
+      if (!lookupUTLN) {
+        setSchedule([]);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const result = await getTASchedule(utln);
-        if (result.shifts?.length) {
-          setSchedule(result.shifts);
-        } else {
-          setSchedule(createDummyShifts(userProfile));
-        }
+        const result = await getTASchedule(lookupUTLN);
+        setSchedule(result?.shifts || []);
+        if (result?.config) updateConfig(result.config);
       } catch {
-        setSchedule(createDummyShifts(userProfile));
+        setSchedule([]);
       } finally {
         setLoading(false);
       }
     }
     fetchSchedule();
-  }, [utln, setSchedule, userProfile.name, userProfile.utln]);
+  }, [utln, setSchedule, userProfile.utln, updateConfig]);
 
   const { gridData, tooltipData, ohShifts, labShifts } = useMemo(() => {
     const grid = {};
@@ -254,9 +197,9 @@ export default function TAViewer() {
             mode="ta-viewer"
             data={gridData}
             tooltipData={tooltipData}
-            startHour={9}
-            endHour={24}
-            slotMinutes={90}
+            startHour={config.earliestStart ? parseInt(config.earliestStart, 10) : 9}
+            endHour={config.latestEnd === '00:00' ? 24 : parseInt(config.latestEnd || '24', 10)}
+            slotMinutes={config.slotDuration || 30}
           />
         )}
       </div>

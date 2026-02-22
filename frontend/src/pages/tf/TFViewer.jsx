@@ -12,46 +12,6 @@ const DAY_TO_CODE = { Mon: 'M', Tue: 'T', Wed: 'W', Thu: 'R', Fri: 'F', Sat: 'S'
 const DAY_TO_LABEL = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' };
 const PLACEHOLDER_TA = 'TBD_TA';
 
-const DUMMY_SHIFTS = [
-  {
-    day: 'Mon',
-    startTime: '09:00',
-    endTime: '10:30',
-    type: 'oh',
-    assignedTAs: [{ utln: 'alice01', name: 'Alice Kim' }],
-  },
-  {
-    day: 'Mon',
-    startTime: '10:30',
-    endTime: '12:00',
-    type: 'oh',
-    assignedTAs: [{ utln: 'brian02', name: 'Brian Lee' }],
-  },
-  {
-    day: 'Tue',
-    startTime: '13:30',
-    endTime: '15:00',
-    type: 'lab',
-    labLeaders: [{ utln: 'brian02', name: 'Brian Lee' }],
-    labTAs: [{ utln: 'ella05', name: 'Ella Park' }],
-  },
-  {
-    day: 'Wed',
-    startTime: '15:00',
-    endTime: '16:30',
-    type: 'lab',
-    labLeaders: [{ utln: 'ella05', name: 'Ella Park' }],
-    labTAs: [{ utln: 'frank07', name: 'Frank Diaz' }],
-  },
-  {
-    day: 'Thu',
-    startTime: '12:00',
-    endTime: '13:30',
-    type: 'oh',
-    assignedTAs: [{ utln: 'chloe03', name: 'Chloe Patel' }, { utln: 'david04', name: 'David Chen' }],
-  },
-];
-
 function timeToMinutes(timeStr) {
   if (!timeStr) return 0;
   const [h, m] = timeStr.split(':').map(Number);
@@ -97,14 +57,14 @@ function hhmmNoColon(timeStr) {
 function addShiftSlotsToGrid(shift, slotMinutes, grid, tooltip) {
   if (!shift.day || !DAYS.includes(shift.day) || !shift.startTime || !shift.endTime) return;
   if (!slotMinutes || slotMinutes <= 0) return;
-  if (shift.type !== 'oh' && shift.type !== 'lab') return;
+  if (!shift.isEmpty && shift.type !== 'oh' && shift.type !== 'lab') return;
 
   const startMinutes = timeToMinutes(shift.startTime);
   const endMinutes = timeToMinutes(shift.endTime);
   if (endMinutes <= startMinutes) return;
 
-  const slotType = shift.type;
-  const names = shift.type === 'oh' ? getOHNames(shift) : getLabNames(shift);
+  const slotType = shift.isEmpty ? 'no-ta' : shift.type;
+  const names = shift.isEmpty ? [] : (shift.type === 'oh' ? getOHNames(shift) : getLabNames(shift));
 
   for (let current = startMinutes; current < endMinutes; current += slotMinutes) {
     const key = `${shift.day}-${minutesToTime(current)}`;
@@ -128,6 +88,8 @@ function buildScheduleCopyText(shifts) {
   };
 
   for (const shift of safeShifts) {
+    if (shift?.isEmpty) continue;
+
     const day = shift?.day;
     const type = shift?.type;
     const startTime = shift?.startTime;
@@ -217,7 +179,7 @@ const buildScheudleCopyText = buildScheduleCopyText;
 
 export default function TFViewer() {
   const navigate = useNavigate();
-  const { schedule, setSchedule, config, templateSlots } = useSchedule();
+  const { schedule, setSchedule, config, updateConfig } = useSchedule();
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
@@ -225,19 +187,16 @@ export default function TFViewer() {
     async function fetchSchedule() {
       try {
         const result = await getTFSchedule();
-        if (result.shifts?.length) {
-          setSchedule(result.shifts);
-        } else {
-          setSchedule(DUMMY_SHIFTS);
-        }
+        setSchedule(result?.shifts || []);
+        if (result?.config) updateConfig(result.config);
       } catch {
-        setSchedule(DUMMY_SHIFTS);
+        setSchedule([]);
       } finally {
         setLoading(false);
       }
     }
     fetchSchedule();
-  }, [setSchedule]);
+  }, [setSchedule, updateConfig]);
 
   const { gridData, tooltipData, ohShifts, labShifts } = useMemo(() => {
     const grid = {};
@@ -246,14 +205,12 @@ export default function TFViewer() {
     const lab = [];
     const slotMinutes = config.slotDuration || 30;
 
-    Object.entries(templateSlots).forEach(([key, slotType]) => {
-      if (slotType === 'oh' || slotType === 'lab') {
-        grid[key] = 'no-ta';
-        tooltip[key] = [];
-      }
-    });
-
     schedule.forEach((shift) => {
+      if (shift.isEmpty) {
+        addShiftSlotsToGrid(shift, slotMinutes, grid, tooltip);
+        return;
+      }
+
       const cardNames = shift.type === 'oh' ? getOHNames(shift) : getLabNames(shift);
       const card = {
         day: shift.day || '',
@@ -270,7 +227,7 @@ export default function TFViewer() {
     });
 
     return { gridData: grid, tooltipData: tooltip, ohShifts: oh, labShifts: lab };
-  }, [schedule, config.slotDuration, templateSlots]);
+  }, [schedule, config.slotDuration]);
 
   const handleCopy = async () => {
     try {
