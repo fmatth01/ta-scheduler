@@ -19,6 +19,8 @@ export default function ScheduleConfig() {
   const [generating, setGenerating] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState('');
+  const SLOT_DURATION_OPTIONS = [30, 45, 60, 75, 90];
+
 
   const handleCellClick = (day, time) => {
     const key = `${day}-${time}`;
@@ -107,17 +109,25 @@ export default function ScheduleConfig() {
       </div>
 
       <div>
-        <label className="block text-lg font-medium text-gray-700 mb-1">
-          Time duration of lab/office hours (min)
-        </label>
-        <input
-          type="number"
-          value={config.slotDuration}
-          onChange={(e) => updateConfig({ slotDuration: parseInt(e.target.value) || 30 })}
-          min={15}
-          step={15}
-          className="w-full bg-white px-3 py-2 border border-gray-300 rounded-lg text-lg outline-none focus:ring-2 focus:ring-mint"
-        />
+        <label className="block text-lg font-medium text-gray-700 mb-1">Shift Length</label>
+        <div className="w-full border border-gray-300 rounded-lg overflow-hidden flex">
+          {SLOT_DURATION_OPTIONS.map((duration, idx) => (
+            <button
+              key={duration}
+              type="button"
+              onClick={() => updateConfig({ slotDuration: duration })}
+              className={`flex-1 px-3 py-2 text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint ${
+                idx !== 0 ? 'border-l border-gray-200' : ''
+              } ${
+                config.slotDuration === duration
+                  ? 'bg-gray-200 text-gray-700'
+                  : 'text-gray-700 hover:bg-gray-50 bg-white'
+              }`}
+            >
+              {duration}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>
