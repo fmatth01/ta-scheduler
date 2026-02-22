@@ -1,5 +1,6 @@
 from data_access import *
 from constraints import *
+from scoring import *
 
 # ============================================================
 # INITIAL SCHEDULE - GREEDY APPROACH
@@ -30,14 +31,7 @@ def greedy_assign(ctx):
 
     # Give preference to better TAs with better "fit"
     def candidate_score(ta_id, shift_id):
-        ta = get_ta(ctx, ta_id)
-        pref = get_pref(ctx, ta_id, shift_id)
-        
-        hours_below_min = max(0, ta["min_hours"] - hours_assigned[ta_id])
-        balance_boost   = hours_below_min / ta["min_hours"] if ta["min_hours"] > 0 else 0
-        exp_penalty     = experience_penalty(ctx, ta_id, shift_id, schedule)
-        
-        return pref + balance_boost + exp_penalty 
+        return compute_candidate_score(ctx, ta_id, shift_id, schedule, hours_assigned)
 
     # Assign correct number of TAs to the shift, role
     def fill_role(shift, role, num_needed):
@@ -62,14 +56,29 @@ def greedy_assign(ctx):
                 f"Could only fill {len(selected)}/{num_needed} {role} slots"
             )
 
-    # Labs first, then OH
-    sorted_shifts = sorted(ctx.shift_metadata, key=lambda s: not s["is_lab"])
+    lab_shifts = sorted(
+        [s for s in ctx.shift_metadata if s["is_lab"]],
+        key=lambda s: sum(
+            1 for ta in ctx.ta_metadata
+            if ta["lab_admin_status"] >= 3
+            and get_pref(ctx, ta["ta_id"], s["shift_id"]) > 0
+        )
+    )
+    oh_shifts = sorted(
+        [s for s in ctx.shift_metadata if not s["is_lab"]],
+        key=lambda s: (s["day"].value, s["start"])
+    )
 
-    for shift in sorted_shifts:
-        if shift["is_lab"]:
-            fill_role(shift, "lead",   shift["staffing"][2])
-            fill_role(shift, "lab_ta", shift["staffing"][1])
-        else:
-            fill_role(shift, "oh_ta",  shift["staffing"][0])
+    # Pass 1 — all leads across all labs
+    for shift in lab_shifts:
+        fill_role(shift, "lead", shift["staffing"][2])
+
+    # Pass 2 — all lab TAs across all labs
+    for shift in lab_shifts:
+        fill_role(shift, "lab_ta", shift["staffing"][1])
+
+    # Pass 3 — all OH shifts
+    for shift in oh_shifts:
+        fill_role(shift, "oh_ta", shift["staffing"][0])
 
     return schedule, current_assignments, hours_assigned

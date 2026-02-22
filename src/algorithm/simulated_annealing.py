@@ -39,7 +39,7 @@ def simulated_annealing(ctx, initial_temp=10.0, cooling_rate=0.995, num_iteratio
     
     # Start from a greedy schedule
     schedule, current_assignments, hours_assigned = greedy_assign(ctx)
-    current_score = score_schedule(ctx, schedule)
+    current_score = score_schedule(ctx, schedule, hours_assigned)
 
     best_schedule            = deepcopy(schedule)
     best_hours_assigned      = deepcopy(hours_assigned)
@@ -91,7 +91,7 @@ def simulated_annealing(ctx, initial_temp=10.0, cooling_rate=0.995, num_iteratio
         schedule[shift_id][role_key].append(ta_in)
         assign_ta(ctx, ta_in, shift_id, current_assignments, hours_assigned)
 
-        new_score = score_schedule(ctx, schedule)
+        new_score = score_schedule(ctx, schedule, hours_assigned)
         delta     = new_score - current_score
 
         # --------------------------------------------------------
