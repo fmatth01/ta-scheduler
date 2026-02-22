@@ -61,7 +61,9 @@ router.post('/create', async (req, res) => {
                 first_name,
                 last_name,
                 is_tf,
-                lab_perm
+                lab_perm,
+                preferences: [],
+                confirmed_shifts: []
             };
     
             const document = await collection.insertOne(newEntry);

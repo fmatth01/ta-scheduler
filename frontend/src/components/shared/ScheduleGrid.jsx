@@ -33,7 +33,7 @@ function getCellColor(mode, cellValue) {
 
   switch (mode) {
     case 'builder':
-      return cellValue === 'preferred' ? 'bg-shift-green/70' : 'bg-shift-yellow/70';
+      return cellValue === 'preferred' ? 'bg-shift-pink' : 'bg-shift-blue';
     case 'ta-viewer':
       if (cellValue === 'my-oh') return 'bg-shift-pink';
       if (cellValue === 'my-lab') return 'bg-shift-yellow';
@@ -42,7 +42,10 @@ function getCellColor(mode, cellValue) {
     case 'tf-config':
       return cellValue === 'oh' ? 'bg-shift-blue' : 'bg-shift-yellow';
     case 'tf-viewer':
-      return cellValue === 'oh' ? 'bg-shift-blue' : 'bg-shift-yellow';
+      if (cellValue === 'oh') return 'bg-shift-blue';
+      if (cellValue === 'lab') return 'bg-shift-yellow';
+      if (cellValue === 'no-ta') return 'bg-red-500';
+      return '';
     default:
       return '';
   }
@@ -57,7 +60,7 @@ function getHoverColorClass(mode, cellValue, isEditable) {
   }
 
   if (mode === 'builder') {
-    return cellValue === 'preferred' ? 'hover:bg-shift-green' : 'hover:bg-shift-yellow';
+    return cellValue === 'preferred' ? 'hover:bg-shift-pink' : 'hover:bg-shift-blue';
   }
 
   return 'hover:bg-gray-100';

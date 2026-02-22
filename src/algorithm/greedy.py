@@ -1,6 +1,6 @@
-from data_access import *
-from constraints import *
-from scoring import *
+from helpers.data_access import *
+from helpers.constraints import *
+from helpers.scoring import *
 
 # ============================================================
 # INITIAL SCHEDULE - GREEDY APPROACH

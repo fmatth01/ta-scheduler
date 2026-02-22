@@ -135,6 +135,51 @@ router.post('/initSchedule', async (req, res) => {
 
 });
 
+router.put('/update', async (req, res) => {
+    try {
+        const client = await mongodbPromise;
+        const db = client.db('ta-scheduler');
+        const collection = db.collection('schedule');
+
+        console.log(req.body)
+        const { schedule_id, schedule } = req.body
+
+        if (!schedule_id || !schedule) {
+            res.status(400).send("Either schedule or schedule_id");
+        }
+
+        // const { error } = schedule_schema.validate(schedule);
+
+        // if (error) {
+        //     res.status(400).send(error.details[0].message);
+        // } else {
+
+            const { _id, ...scheduleWithoutId } = schedule;
+
+            const results = await collection.replaceOne(
+                { schedule_id: schedule_id },
+                { ...scheduleWithoutId, schedule_id }
+            );
+            
+            // const results = await collection.replaceOne(
+            //     {schedule_id: schedule_id},
+            //     schedule
+            // );
+            
+            res.status(200).send(results);
+        // }
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            'message': 'Error connecting to MongoDB: ',
+            error
+        });
+    }
+});
+
+
+
 /* Splits a the time format "HH:MM" to MM */
 function timeToMinutes(hhmm) {
     const [hh, mm] = hhmm.split(":").map(Number);

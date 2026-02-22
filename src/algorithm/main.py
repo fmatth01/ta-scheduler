@@ -1,33 +1,54 @@
-from context import SchedulerContext
-from constraints import *
+from data.context import SchedulerContext
+from helpers.constraints import *
 from simulated_annealing import *
-from scoring import *
+from helpers.scoring import *
 from reducer import *
+from data.parsers import *
+from data.db_connection import *
 
-from realistic_dummy_data import ta_metadata, shift_metadata, preference_matrix
+from dummy_data.realistic_dummy_data import ta_metadata, shift_metadata, preference_matrix
+SCHEDULE_ID = 1
 
-# Build context
+# ============================================================
+# BUILD CONTEXT AND RUN SCHEDULER
+# ============================================================
+
 ctx = SchedulerContext(ta_metadata, shift_metadata, preference_matrix)
 
-# Apply fairness caps (mutates ctx.ta_metadata in place)
 apply_fairness(ctx)
 
-# Run scheduler
 schedule, hours_assigned, score = simulated_annealing(ctx)
 display_results(ctx, schedule, hours_assigned, score)
 
-# Show cost of full schedule
 print("\n--- FULL SCHEDULE COST ---")
 print(calculate_cost(ctx, hours_assigned))
 
-# Reduce to target budget
+# ============================================================
+# REDUCE SCHEDULE
+# ============================================================
+
 print("\n--- REDUCED SCHEDULE ---")
 target_budget = calculate_cost(ctx, hours_assigned) * 0.8
 reduced_schedule, reduced_hours = reduce_schedule(ctx, schedule, hours_assigned, target_budget)
 
-# Show results of reduced schedule
 print("\n--- REDUCED SCHEDULE ASSIGNMENTS ---")
 display_results(ctx, reduced_schedule, reduced_hours, score)
 
 print("\n--- REDUCED SCHEDULE COST ---")
 print(calculate_cost(ctx, reduced_hours))
+
+# ============================================================
+# POST FILLED SCHEDULE BACK TO DB
+# ============================================================
+
+print("\n--- POSTING SCHEDULE TO DB ---")
+try:
+    payload = {
+        "schedule_id": SCHEDULE_ID,
+        "score":       score,
+        **serialize_schedule(ctx, reduced_schedule)
+    }
+    result = post_schedule(SCHEDULE_ID, payload)
+    print(f"Successfully posted schedule {SCHEDULE_ID} to DB")
+except Exception as e:
+    print(f"Could not post schedule to DB: {e}")
