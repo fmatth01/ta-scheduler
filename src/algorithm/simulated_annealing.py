@@ -1,5 +1,5 @@
-from data_access import *
-from scoring import *
+from helpers.data_access import *
+from helpers.scoring import *
 from greedy import *
 
 # ============================================================
