@@ -84,7 +84,7 @@ export default function ScheduleBuilder() {
     setError('');
     setLoading(true);
     try {
-      await submitAvailability(normalizedUTLN, availability, { labLead, labAssistant }, normalizedName);
+      await submitAvailability(normalizedUTLN, availability, { labLead, labAssistant }, normalizedName, config);
       navigate('/viewer', { state: { taProfile: { name: normalizedName, utln: normalizedUTLN } } });
     } catch {
       setError('Failed to submit availability. Please try again.');

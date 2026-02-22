@@ -35,6 +35,78 @@ const BACKEND_DAY_TO_FRONTEND = Object.fromEntries(
   Object.entries(FRONTEND_TO_BACKEND_DAY).map(([fe, be]) => [be, fe])
 );
 
+const FRONTEND_TO_PREF_DAY = {
+  Mon: 'm',
+  Tue: 'tu',
+  Wed: 'w',
+  Thu: 'th',
+  Fri: 'f',
+  Sat: 'sa',
+  Sun: 'su',
+};
+
+const PREF_DAYS_IN_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+function parseTimeToMinutes(timeStr) {
+  const [hourStr, minuteStr] = (timeStr || '').split(':');
+  const hours = Number(hourStr);
+  const minutes = Number(minuteStr);
+
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || hours > 24 || minutes < 0 || minutes > 59) {
+    throw new Error(`Invalid time string: ${timeStr}`);
+  }
+  if (hours === 24 && minutes !== 0) {
+    throw new Error(`Invalid time string: ${timeStr}`);
+  }
+
+  return (hours * 60) + minutes;
+}
+
+function formatMinutesToTime(totalMinutes) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function availabilityValueToPreference(value) {
+  if (value === 'preferred') return 2;
+  if (value === 'available') return 1;
+  return 0;
+}
+
+function buildPreferenceStrings(availability, config = {}) {
+  const slotDuration = Number(config.slotDuration) || 30;
+  const startTime = config.earliestStart || '09:00';
+  const endTime = config.latestEnd === '00:00' ? '24:00' : (config.latestEnd || '24:00');
+
+  const startMinutes = parseTimeToMinutes(startTime);
+  const endMinutes = parseTimeToMinutes(endTime);
+
+  if (!Number.isInteger(slotDuration) || slotDuration <= 0) {
+    throw new Error('Invalid slot duration');
+  }
+
+  if (endMinutes <= startMinutes) {
+    return [];
+  }
+
+  const preferences = [];
+  for (const frontendDay of PREF_DAYS_IN_ORDER) {
+    const backendDay = FRONTEND_TO_PREF_DAY[frontendDay];
+    if (!backendDay) continue;
+
+    for (let start = startMinutes; start + slotDuration <= endMinutes; start += slotDuration) {
+      const slotStart = formatMinutesToTime(start);
+      const slotEnd = formatMinutesToTime(start + slotDuration);
+      const key = `${frontendDay}-${slotStart}`;
+      const pref = availabilityValueToPreference(availability[key]);
+      preferences.push(`${backendDay}:${slotStart}-${slotEnd}:${pref}`);
+    }
+  }
+
+  return preferences;
+}
+
 // --- Auth ---
 
 export async function loginTA(utln, classCode) {
@@ -59,11 +131,11 @@ export async function generateClassCode() {
 
 // --- TA ---
 
-export async function submitAvailability(utln, availability, preferences, fullName) {
+export async function submitAvailability(utln, availability, preferences, fullName, config) {
   const { first_name, last_name } = splitName(fullName);
   const lab_perm = labPermFromPreferences(preferences.labLead, preferences.labAssistant);
 
-  const result = await apiCall('/ta/create', 'POST', {
+  await apiCall('/ta/create', 'POST', {
     ta_id: utln,
     first_name,
     last_name,
@@ -71,8 +143,12 @@ export async function submitAvailability(utln, availability, preferences, fullNa
     lab_perm,
   }, null);
 
-  // TODO: Future work — submit availability preferences once backend endpoint exists.
-  // Availability format will be "day:hh:mm-hh:mm:x" where x is 0/1/2.
+  const parsedPreferences = buildPreferenceStrings(availability, config);
+
+  const result = await apiCall('/ta/preferences', 'POST', {
+    ta_id: utln,
+    preferences: parsedPreferences,
+  }, null);
 
   return result;
 }
