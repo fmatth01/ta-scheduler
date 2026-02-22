@@ -1,5 +1,10 @@
 const Joi = required('joi');
 
+const staffing_capacity_schema = Joi.object({
+    num_tas: Joi.number().min(1).required(),
+    lab_perm: Joi.number().min(0).max(2).required(), /* 0 - OH, 1 - LabAssist, 2 - LabLead */
+})
+
 const shifts_schema = Joi.object({
     shift_id: Joi.number().required(),
     start_time: Joi.date().required(),
@@ -8,11 +13,6 @@ const shifts_schema = Joi.object({
     is_empty: Joi.boolean().default(true),
     tas_scheduled: Joi.array.items(Joi.string()).default([]),
     staffing_capacity: staffing_capacity_schema
-})
-
-const staffing_capacity_schema = Joi.object({
-    num_tas: Joi.number().min(1).required(),
-    lab_perm: Joi.number().min(0).max(2).required(), /* 0 - OH, 1 - LabAssist, 2 - LabLead */
 })
 
 const schedule_schema = Joi.object({
