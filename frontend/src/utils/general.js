@@ -13,6 +13,7 @@
  *      - Example Usage: apiCall('/staff/create', "POST", { firstName, lastName, ... }, None)
  *      - An instance of the backend must be running in a separate terminal for local use
  */
+
 export const apiCall = async (url, method, body, token) => {
 
   // add '/' to the beginning of the url if it is not there
