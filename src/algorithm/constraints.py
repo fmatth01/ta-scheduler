@@ -65,7 +65,7 @@ def get_eligible_tas_for_role(ctx, shift_id, role, current_assignments, hours_as
 # ENFORCE FAIRNESS FLOOR TO EVEN OUT SHIFTS
 # ============================================================
 
-def apply_fairness_floor(ctx, threshold=0.7):
+def apply_fairness_floor(ctx, threshold=0.9):
     """
     Calculates a fair share of hours for each TA and raises their
     min_hours to threshold * fair_share if it's currently lower.
@@ -88,14 +88,14 @@ def apply_fairness_floor(ctx, threshold=0.7):
         available_hours = sum(
             shift_duration_hours(shift)
             for j, shift in enumerate(ctx.shift_metadata)
-            if ctx.preference_matrix[i][j] > 0
+            if get_pref(ctx, i, j) > 0
         )
 
         # Don't set a floor higher than what they can actually work
         adjusted_floor = min(fairness_floor, available_hours)
 
         # Only raise the floor, never lower an existing min
-        new_min = max(ta["min_hours"], adjusted_floor)
+        new_min = max(ta["min_hours"], int(adjusted_floor))
 
         if new_min != ta["min_hours"]:
             ta["min_hours"] = new_min

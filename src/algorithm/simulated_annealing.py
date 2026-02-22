@@ -10,16 +10,18 @@ import math
 import random
 from copy import deepcopy
 
-def get_random_filled_shift(schedule):
-    # Pick a random shift that has at least one assignment
+def get_random_filled_shift(ctx, schedule):
     filled_shifts = [
         shift_id for shift_id, assignment in schedule.items()
         if assignment["leads"] or assignment["lab_tas"] or assignment["oh_tas"]
     ]
-    shift_id = random.choice(filled_shifts)
+
+    # Weight by shift priority so important shifts get more improvement attempts
+    weights = [shift_priority(ctx, shift_id) for shift_id in filled_shifts]
+
+    shift_id   = random.choices(filled_shifts, weights=weights, k=1)[0]
     assignment = schedule[shift_id]
 
-    # Pick a random role pool that is nonempty, then a random TA from it
     nonempty_roles = []
     if assignment["leads"]:
         nonempty_roles.append(("lead", "leads"))
@@ -31,7 +33,7 @@ def get_random_filled_shift(schedule):
     role, role_key = random.choice(nonempty_roles)
     ta_out = random.choice(assignment[role_key])
 
-    return(ta_out, shift_id, role)
+    return ta_out, shift_id, role
 
 def simulated_annealing(ctx, initial_temp=10.0, cooling_rate=0.995, num_iterations=10000):
     
@@ -50,7 +52,7 @@ def simulated_annealing(ctx, initial_temp=10.0, cooling_rate=0.995, num_iteratio
         # --------------------------------------------------------
         # PICK A RANDOM FILLED (shift, role) SLOT TO MUTATE
         # --------------------------------------------------------
-        ta_out, shift_id, role = get_random_filled_shift(schedule)
+        ta_out, shift_id, role = get_random_filled_shift(ctx, schedule)
         role_key = role + "s"
 
         # --------------------------------------------------------

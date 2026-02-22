@@ -4,9 +4,7 @@
 
 def get_pref(ctx, ta_id, shift_id):
     """Get a TA's preference score for a shift. 0 means unavailable."""
-    ta_idx    = ta_id - 1      # ta_ids are 1-indexed
-    shift_idx = shift_id - 1   # shift_ids are 1-indexed
-    return ctx.preference_matrix[ta_idx][shift_idx]
+    return ctx.preference_matrix.get(ta_id, {}).get(shift_id, 0)
 
 def is_available(ctx, ta_id, shift_id):
     """A TA is available for a shift if their preference score is > 0."""
