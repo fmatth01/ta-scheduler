@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const mongodbPromise = require('../utils/mongo');
-const { ta_schema } = require('../schemas/TA');
+const { ta_schema } = require('../schemas/ta');
 
 /* * GET /create :
  *      summary: creates a new TA in the 'ta-scheduler' database 'ta' collection 
