@@ -56,7 +56,6 @@ def greedy_assign(ctx):
                 f"Could only fill {len(selected)}/{num_needed} {role} slots"
             )
 
-    # Labs first, then OH
     sorted_shifts = sorted(ctx.shift_metadata, key=lambda s: not s["is_lab"])
 
     for shift in sorted_shifts:
