@@ -31,10 +31,11 @@ function generateTimeSlots(startHour, endHour, slotMinutes) {
 
 export default function ScheduleConfig() {
   const navigate = useNavigate();
-  const { name: authName } = useAuth();
+  const { name: authName, utln } = useAuth();
   const { config, updateConfig, templateSlots, setTemplateSlot, clearTemplate } = useSchedule();
 
   const [fullName, setFullName] = useState(authName || '');
+  const [userUTLN, setUTLN] = useState(utln || '');
   const [editMode, setEditMode] = useState('Office Hours');
   const [generating, setGenerating] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -63,13 +64,22 @@ export default function ScheduleConfig() {
   };
 
   const handlePublish = async () => {
+    if (!fullName.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
+    if (!userUTLN.trim()) {
+      setError('Please enter your UTLN.');
+      return;
+    }
     setPublishing(true);
     setError('');
     try {
-      await publishSchedule(templateSlots, config);
+      await publishSchedule(templateSlots, config, userUTLN.trim(), fullName.trim());
       navigate('/tf/viewer');
-    } catch {
-      setError('Failed to publish schedule.');
+    } catch (err) {
+      console.error('Publish failed:', err);
+      setError(err.body || 'Failed to publish schedule.');
     } finally {
       setPublishing(false);
     }
@@ -112,6 +122,19 @@ export default function ScheduleConfig() {
           onChange={(e) => setFullName(e.target.value)}
           placeholder="John Smith"
           className="w-full bg-white px-3 py-2 border border-gray-300 rounded-lg text-lg outline-none focus:ring-2 focus:ring-mint"
+        />
+      </div>
+
+      <div>
+        <label className="block text-lg font-medium text-gray-700 mb-1">utln</label>
+        <input
+          type="text"
+          value={userUTLN}
+          onChange={(e) => setUTLN(e.target.value)}
+          placeholder="jsmith01"
+          className={`w-full bg-white px-3 py-2 border rounded-lg text-lg outline-none focus:ring-2 focus:ring-mint ${
+            error && !userUTLN.trim() ? 'border-red-400' : 'border-gray-300'
+          }`}
         />
       </div>
 

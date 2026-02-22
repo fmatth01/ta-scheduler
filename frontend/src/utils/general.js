@@ -15,14 +15,15 @@
  */
 
 export const apiCall = async (url, method, body, token) => {
-
+  console.log("first instance of body: ", body)
+  console.log("base url: ", import.meta.env.VITE_BASE_URL)
   // add '/' to the beginning of the url if it is not there
   if (!url.startsWith('/')) {
     url = '/' + url;
   }
   let response;
   try {
-    response = await fetch(import.meta.env.VITE_BASE_URL + url, {
+    response = await fetch("http://localhost:3000" + url, {
       method: method,
       headers: {
         ...(body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), 
@@ -37,8 +38,11 @@ export const apiCall = async (url, method, body, token) => {
   }
 
   if (!response.ok) {
-    console.error(response);
-    throw { status: response.status, statusText: response.statusText };
+    let body = '';
+    console.log("this is the provided body", body)
+    try { body = await response.text(); } catch {}
+    console.error('API error:', response.status, body);
+    throw { status: response.status, statusText: response.statusText, body };
   }
 
   const contentType = response.headers.get('content-type');
