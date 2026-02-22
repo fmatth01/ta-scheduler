@@ -35,14 +35,14 @@ function getCellColor(mode, cellValue) {
     case 'builder':
       return cellValue === 'preferred' ? 'bg-preferred/70' : 'bg-general/70';
     case 'ta-viewer':
-      if (cellValue === 'my-oh') return 'bg-oh-shift/70';
-      if (cellValue === 'my-lab') return 'bg-lab-shift/70';
-      if (cellValue === 'other') return 'bg-other-shift/50';
+      if (cellValue === 'my-oh') return 'bg-shift-pink/70';
+      if (cellValue === 'my-lab') return 'bg-shift-yellow/70';
+      if (cellValue === 'other') return 'bg-shift-blue/50';
       return '';
     case 'tf-config':
-      return cellValue === 'oh' ? 'bg-oh-shift/70' : 'bg-lab-shift/70';
+      return cellValue === 'oh' ? 'bg-shift-pink/70' : 'bg-shift-yellow/70';
     case 'tf-viewer':
-      return cellValue === 'oh' ? 'bg-oh-shift/50' : 'bg-lab-shift/50';
+      return cellValue === 'oh' ? 'bg-shift-pink/50' : 'bg-shift-yellow/50';
     default:
       return '';
   }

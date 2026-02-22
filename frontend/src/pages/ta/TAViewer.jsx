@@ -106,15 +106,15 @@ export default function TAViewer() {
         {/* Legend */}
         <div className="flex items-center gap-4 mb-4">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-oh-shift" />
+            <div className="w-3 h-3 rounded bg-shift-pink" />
             <span className="text-xs text-gray-600">My OH Shifts</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-lab-shift" />
+            <div className="w-3 h-3 rounded bg-shift-yellow" />
             <span className="text-xs text-gray-600">My Lab Shifts</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-other-shift" />
+            <div className="w-3 h-3 rounded bg-shift-blue" />
             <span className="text-xs text-gray-600">Other Shifts</span>
           </div>
         </div>
