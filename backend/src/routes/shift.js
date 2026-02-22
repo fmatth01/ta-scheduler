@@ -92,5 +92,69 @@ router.post('/create', async (req, res) => {
 });
 
 
+/* * POST /check_empty :
+ *      summary: creates a new shift in the 'ta-scheduler' database 'shifts' collection 
+ * 
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              json:
+ *                schema:
+ *                  properties:
+ *                    shift_id:
+ *                      type: String
+ *                    start_time:
+ *                      type: Date
+ *                    end_time:
+ *                      type: Date
+ *                    is_lab:
+ *                      type: Bool
+ *                    is_empty:
+ *                      type: Bool
+ *                    staffing_capacity:
+ *                      type: (Int, Int)
+ * 
+ *                  required:
+ *                      - shift_id
+ *                      - start_time
+ *                      - end_time
+ *                      - is_lab
+ *                      - is_empty
+ *                      - staffing_capacity
+ * 
+ * 
+ *      responses:
+ *        200:
+ *          description: - a json object is returned.
+ *        400:
+ *          description: - error message when invalid request body is sent to endpoint
+ *        500:
+ *          description: - an error message and the error caught
+ * */
+router.post('/check_empty', async (req, res) => {
+    try {
+        const client = await mongodbPromise;
+        const db = client.db('ta-scheduler');
+        const collection = db.collection('shifts');
+        const { shift_id } = req.body;
+        
+        const shift = await collection.findOne({ shift_id });
+        
+        if (!shift) {
+            return res.status(404).send({ message: 'Shift not found' });
+        }
+        
+        const is_empty = !shift.assigned_ta || shift.assigned_ta.length === 0;
+        res.status(200).send(is_empty);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            message: 'Error connecting to MongoDB',
+            error: error.message
+        });
+    }
+});
+
+
 
 module.exports = router;
