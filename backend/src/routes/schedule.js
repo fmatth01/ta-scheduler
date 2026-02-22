@@ -37,19 +37,20 @@ router.get('/getSchedule', async (req, res) => {
         const schedule_id = Number(req.query.schedule_id);
         
         if (!schedule_id) {
-            res.status(400).send("Param sent is invalid");
+            return res.status(400).send("Param sent is invalid");
         } else {
             const document = await collection.findOne({'schedule_id': schedule_id})
 
             if (document) {
-                res.status(200).send(JSON.stringify(document))
+                return res.status(200).json(document)
             } else {
-                res.status(404).send(`Cannot find schedule with id: ${schedule_id}`)
+                return res.status(404).send(`Cannot find schedule with id: ${schedule_id}`)
             }
         }
     } catch (error) {
         console.log(error);
-        res.status(500).send({
+        if (res.headersSent) return;
+        return res.status(500).send({
             'message': 'Error connecting to MongoDB: ',
             error
         });
@@ -111,8 +112,9 @@ router.post('/initSchedule', async (req, res) => {
                     }
                 
                 // console.log(body)
-                let data = await apiCall('/shift/create', 'post', body, null);
-                schedule[day].push(data.message);
+                const data = await apiCall('/shift/create', 'post', body, null);
+                // Keep full shift objects in schedule arrays for downstream processing.
+                schedule[day].push(data.message ?? data);
             }
         }
 
@@ -127,7 +129,8 @@ router.post('/initSchedule', async (req, res) => {
         
     } catch (error) {
         console.log(error);
-        res.status(500).send({
+        if (res.headersSent) return;
+        return res.status(500).send({
             'message': 'Error connecting to MongoDB: ',
             error
         });
