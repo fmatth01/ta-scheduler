@@ -182,11 +182,12 @@ export default function ScheduleConfig() {
           </div>
         </div>
         <p className="text-lg text-gray-500 italic">
-          Click on an "x" to remove a block of availability
+          Click on an empty block to add availability
         </p>
-        <p className="text-lg text-gray-500 mb-4 italic">
-          Click on a shift to toggle between lab and OH
+        <p className="text-lg text-gray-500 italic mb-4">
+          Click on an existing shift to toggle its type
         </p>
+
         <ScheduleGrid
           mode="tf-config"
           data={templateSlots}
