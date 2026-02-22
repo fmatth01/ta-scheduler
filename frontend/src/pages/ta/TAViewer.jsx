@@ -140,7 +140,6 @@ export default function TAViewer() {
         ? [{ name: userProfile.name, utln: userProfile.utln }]
         : (shift.assignedTAs || []);
       const card = {
-        date: shift.date || '',
         day: shift.day || '',
         startTime: shift.startTime || '',
         endTime: shift.endTime || '',
