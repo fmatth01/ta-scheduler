@@ -359,10 +359,6 @@ See [ALGORITHM.md](./ALGORITHM.md) for in-depth explanation.
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
 ### Development Workflow
 
 1. Fork the repository
@@ -382,30 +378,6 @@ We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for gu
 
 ---
 
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**MongoDB Connection Errors:**
-```
-Error: connect ECONNREFUSED 127.0.0.1:27017
-```
-**Solution:** Ensure MongoDB is running (`brew services start mongodb-community`)
-
-**Port Already in Use:**
-```
-Error: listen EADDRINUSE: address already in use :::3000
-```
-**Solution:** Kill the process using the port:
-```bash
-# macOS/Linux
-lsof -i :3000
-kill -9 <PID>
-
-# Windows
-netstat -ano | findstr :3000
-taskkill /PID <PID> /F
-```
 
 **Module Not Found:**
 ```
@@ -432,11 +404,11 @@ This project was created for JumboHack 2026 at Tufts University.
 - **Caityn Parrish-Lewis** - [@rockyboo3](https://github.com/rockyboo3)
 - **Lindsay Ulrey** - [@lgulrey](https://github.com/lgulrey)
 - **Tom Zhou** - [@TomZhou145](https://github.com/TomZhou145)
-- **Fahim Rashid** - [@TomZhou145](https://github.com/TomZhou145)
+- **Fahim Rashid** - [@epicfahimxd](https://github.com/epicfahimxd)
 - **Finn Mathews** - [@fmatth01](https://github.com/fmathh01)
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built for **JumboHack 2026** at Tufts University
 - Optimization algorithms inspired by classical scheduling problems
@@ -451,17 +423,3 @@ For questions or issues, please open an issue on GitHub or contact the team.
 **Repository:** [github.com/fmatth01/ta-scheduler](https://github.com/fmatth01/ta-scheduler)
 
 ---
-
-## 🙏 Acknowledgments
-
-- Built for **JumboHack 2026** at Tufts University
-- Optimization algorithms inspired by classical scheduling problems
-- UI design influenced by modern SaaS applications
-
----
-
-## 📬 Contact
-
-For questions or issues, please open an issue on GitHub or contact the team.
-
-**Repository:** [github.com/fmatth01/ta-scheduler](https://github.com/fmatth01/ta-scheduler)
