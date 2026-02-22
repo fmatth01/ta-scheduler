@@ -33,7 +33,7 @@ function getCellColor(mode, cellValue) {
 
   switch (mode) {
     case 'builder':
-      return cellValue === 'preferred' ? 'bg-preferred' : 'bg-general';
+      return cellValue === 'preferred' ? 'bg-shift-green/70' : 'bg-shift-yellow/70';
     case 'ta-viewer':
       if (cellValue === 'my-oh') return 'bg-shift-pink';
       if (cellValue === 'my-lab') return 'bg-shift-yellow';
@@ -53,7 +53,11 @@ function getHoverColorClass(mode, cellValue, isEditable) {
   if (!cellValue) return 'hover:bg-gray-100';
 
   if (mode === 'tf-config') {
-    return cellValue === 'oh' ? 'hover:bg-oh-shift' : 'hover:bg-lab-shift';
+    return cellValue === 'oh' ? 'hover:bg-shift-blue' : 'hover:bg-shift-yellow';
+  }
+
+  if (mode === 'builder') {
+    return cellValue === 'preferred' ? 'hover:bg-shift-green' : 'hover:bg-shift-yellow';
   }
 
   return 'hover:bg-gray-100';
