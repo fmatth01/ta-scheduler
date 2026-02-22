@@ -159,12 +159,18 @@ router.post('/preferences', async (req, res) => {
             })
         }
         // Task: Parse the preferences
-        await collection.updateOne(
-            {ta_id},
-            {$push: {preferences: {$each: preferences}}}
-        )
-
-        //Update the actual schedule
+        // **If TA already has preferences, overwrite them; otherwise append**
+        if (ta.preferences && ta.preferences.length > 0) {
+            await collection.updateOne(
+                { ta_id },
+                { $set: { preferences: preferences } } // overwrite
+            )
+        } else {
+            await collection.updateOne(
+                { ta_id },
+                { $push: { preferences: { $each: preferences } } } // append
+            )
+        }
 
         // Success!
         res.status(200).send({
@@ -178,6 +184,7 @@ router.post('/preferences', async (req, res) => {
         })
     }
 })
+
 
 
 
