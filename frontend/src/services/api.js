@@ -46,6 +46,8 @@ const FRONTEND_TO_PREF_DAY = {
 };
 
 const PREF_DAYS_IN_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const SCHEDULE_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const ACTIVE_SCHEDULE_KEY = 'active_schedule_id';
 
 function parseTimeToMinutes(timeStr) {
   const [hourStr, minuteStr] = (timeStr || '').split(':');
@@ -107,20 +109,181 @@ function buildPreferenceStrings(availability, config = {}) {
   return preferences;
 }
 
+function parseShiftDocument(rawShift) {
+  if (typeof rawShift === 'string') {
+    try {
+      return JSON.parse(rawShift);
+    } catch {
+      return null;
+    }
+  }
+  return rawShift && typeof rawShift === 'object' ? rawShift : null;
+}
+
+function uniqueStrings(values) {
+  return Array.from(new Set((values || []).filter((v) => typeof v === 'string' && v.trim()).map((v) => v.trim())));
+}
+
+function normalizeUTLN(utln) {
+  return String(utln || '').trim().toLowerCase();
+}
+
+function extractShiftUTLNs(shift) {
+  const fromPrimary = Array.isArray(shift?.ta_scheduled) ? shift.ta_scheduled : [];
+  const fromAlternate = Array.isArray(shift?.tas_scheduled) ? shift.tas_scheduled : [];
+  const raw = [...fromPrimary, ...fromAlternate];
+
+  const utlns = raw.map((item) => {
+    if (typeof item === 'string') return item;
+    if (item && typeof item === 'object') return item.utln || item.ta_id || '';
+    return '';
+  });
+
+  return uniqueStrings(utlns);
+}
+
+function toAssignedTAs(utlns) {
+  return utlns.map((utln) => ({ utln, name: utln }));
+}
+
+function mapScheduleDocumentToShifts(scheduleDoc, options = {}) {
+  const { onlyUTLN } = options;
+  const normalizedOnlyUTLN = normalizeUTLN(onlyUTLN);
+  const shifts = [];
+
+  for (const backendDay of SCHEDULE_DAYS) {
+    const frontendDay = BACKEND_DAY_TO_FRONTEND[backendDay];
+    if (!frontendDay) continue;
+
+    const dayShifts = Array.isArray(scheduleDoc?.[backendDay]) ? scheduleDoc[backendDay] : [];
+    for (const rawShift of dayShifts) {
+      const shift = parseShiftDocument(rawShift);
+      if (!shift?.start_time || !shift?.end_time) continue;
+
+      const shiftUTLNs = extractShiftUTLNs(shift);
+      const shiftUTLNsNormalized = shiftUTLNs.map(normalizeUTLN);
+      if (normalizedOnlyUTLN && !shiftUTLNsNormalized.includes(normalizedOnlyUTLN)) {
+        continue;
+      }
+
+      const assignedTAs = toAssignedTAs(shiftUTLNs);
+      const baseShift = {
+        id: shift.shift_id || `${frontendDay}-${shift.start_time}`,
+        day: frontendDay,
+        startTime: shift.start_time,
+        endTime: shift.end_time,
+        type: shift.is_lab ? 'lab' : 'oh',
+        isEmpty: Boolean(shift.is_empty),
+      };
+
+      if (shift.is_lab) {
+        shifts.push({
+          ...baseShift,
+          assignedTAs,
+          labLeaders: [],
+          labTAs: assignedTAs,
+        });
+      } else {
+        shifts.push({
+          ...baseShift,
+          assignedTAs,
+        });
+      }
+    }
+  }
+
+  return shifts;
+}
+
+function readStoredScheduleId() {
+  try {
+    const raw = localStorage.getItem(ACTIVE_SCHEDULE_KEY);
+    const parsed = Number(raw);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeScheduleId(scheduleId) {
+  try {
+    if (Number.isInteger(scheduleId) && scheduleId > 0) {
+      localStorage.setItem(ACTIVE_SCHEDULE_KEY, String(scheduleId));
+    }
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+async function fetchScheduleById(scheduleId) {
+  return apiCall(`/schedule/getSchedule?schedule_id=${scheduleId}`, 'GET', null, null);
+}
+
+async function fetchLatestScheduleId() {
+  const result = await apiCall('/schedule/getLatestScheduleId', 'GET', null, null);
+  return Number(result?.schedule_id);
+}
+
+async function getActiveScheduleDocument() {
+  const storedId = readStoredScheduleId();
+  if (storedId) {
+    try {
+      const storedSchedule = await fetchScheduleById(storedId);
+      storeScheduleId(storedId);
+      return storedSchedule;
+    } catch {
+      // If stored ID is stale, continue and fetch latest.
+    }
+  }
+
+  const latestScheduleId = await fetchLatestScheduleId();
+  if (!Number.isInteger(latestScheduleId) || latestScheduleId <= 0) {
+    throw new Error('No valid schedule_id found');
+  }
+
+  const schedule = await fetchScheduleById(latestScheduleId);
+  storeScheduleId(latestScheduleId);
+  return schedule;
+}
+
 // --- Auth ---
 
 export async function loginTA(utln, classCode) {
-  // TODO: POST /api/auth/login { role: 'ta', utln, classCode }
-  // classCode is an array of 5 emoji strings
-  // Should return: { name: string, isFirstTime: boolean }
-  return new Promise((resolve) => setTimeout(() => resolve({}), 500));
+  const normalizedUTLN = (utln || '').trim();
+  if (!normalizedUTLN) {
+    throw new Error('UTLN is required');
+  }
+
+  // classCode is currently unused until class auth is wired on backend.
+  void classCode;
+
+  const result = await apiCall(`/ta/exists?ta_id=${encodeURIComponent(normalizedUTLN)}`, 'GET', null, null);
+  const firstName = result?.ta?.first_name || '';
+  const lastName = result?.ta?.last_name || '';
+  const name = `${firstName} ${lastName}`.trim();
+
+  return {
+    name,
+    isFirstTime: !result?.exists,
+  };
 }
 
 export async function loginTF(utln, classCode) {
-  // TODO: POST /api/auth/login { role: 'tf', utln, classCode }
-  // classCode is an array of 5 emoji strings
-  // Should return: { name: string }
-  return new Promise((resolve) => setTimeout(() => resolve({}), 500));
+  const normalizedUTLN = (utln || '').trim();
+  if (!normalizedUTLN) {
+    throw new Error('UTLN is required');
+  }
+
+  // classCode is currently unused until class auth is wired on backend.
+  void classCode;
+
+  const result = await apiCall(`/ta/exists?ta_id=${encodeURIComponent(normalizedUTLN)}`, 'GET', null, null);
+  const firstName = result?.ta?.first_name || '';
+  const lastName = result?.ta?.last_name || '';
+
+  return {
+    name: `${firstName} ${lastName}`.trim(),
+  };
 }
 
 export async function generateClassCode() {
@@ -154,10 +317,20 @@ export async function submitAvailability(utln, availability, preferences, fullNa
 }
 
 export async function getTASchedule(utln) {
-  // TODO: GET /api/ta/schedule?utln={utln}
-  // Should return: { shifts: [...], weekRange: 'MM/DD - MM/DD' }
-  // Each shift: { id, day, startTime, endTime, type: 'oh'|'lab', assignedTAs: [{ utln, name }] }
-  return new Promise((resolve) => setTimeout(() => resolve({}), 500));
+  // Keep signature for caller context, but TA viewer needs full schedule:
+  // own shifts are highlighted client-side, everyone else's are shown as "other" (blue).
+  void utln;
+  const schedule = await getActiveScheduleDocument();
+
+  return {
+    shifts: mapScheduleDocumentToShifts(schedule),
+    scheduleId: schedule.schedule_id,
+    config: {
+      earliestStart: schedule.start_interval_time,
+      latestEnd: schedule.end_interval_time,
+      slotDuration: Number(schedule.shift_duration) || 30,
+    },
+  };
 }
 
 // --- TF ---
@@ -166,6 +339,7 @@ export async function generateTemplate(config) {
   // TODO: POST /api/tf/generate-template { config }
   // config: { earliestStart, latestEnd, slotDuration, tasPerShift, approvedTFs }
   // Should return: { templateSlots: { 'Mon-09:00': 'oh', ... } }
+  void config;
   return new Promise((resolve) => setTimeout(() => resolve({}), 500));
 }
 
@@ -192,27 +366,16 @@ export async function publishSchedule(templateSlots, config, tfUtln, tfFullName)
   );
   await Promise.all(approvedTFPromises);
 
-  // Step 3: Initialize schedule
-  // "00:00" means midnight but backend's timeToMinutes("00:00") = 0, making end <= start.
-  const endTime = config.latestEnd === '00:00' ? '23:59' : config.latestEnd;
-
   const scheduleResult = await apiCall('/schedule/initSchedule', 'POST', {
     start_interval_time: config.earliestStart,
-    end_interval_time: endTime,
+    end_interval_time: config.latestEnd,
     shift_duration: config.slotDuration,
     staffing_capacity: [0, config.tasPerShift],
   }, null);
 
-  // Step 4: Mark lab slots as is_lab=true in the returned schedule.
-  // Each day's array contains JSON strings of shift objects from the backend.
+  // Step 4: Apply template slot type to each shift.
+  // Slots not present in template are persisted as empty.
   const schedule = JSON.parse(JSON.stringify(scheduleResult));
-
-  const labSlotSet = new Set();
-  for (const [key, value] of Object.entries(templateSlots)) {
-    if (value === 'lab') {
-      labSlotSet.add(key);
-    }
-  }
 
   for (const [backendDay, shifts] of Object.entries(schedule)) {
     if (backendDay === 'schedule_id' || backendDay === '_id') continue;
@@ -227,8 +390,19 @@ export async function publishSchedule(templateSlots, config, tfUtln, tfFullName)
         continue;
       }
       const slotKey = `${frontendDay}-${shift.start_time}`;
-      if (labSlotSet.has(slotKey)) {
+      const slotType = templateSlots[slotKey];
+
+      if (slotType === 'lab') {
         shift.is_lab = true;
+        shift.is_empty = false;
+      } else if (slotType === 'oh') {
+        shift.is_lab = false;
+        shift.is_empty = false;
+      } else {
+        shift.is_lab = false;
+        shift.is_empty = true;
+        shift.ta_scheduled = [];
+        shift.tas_scheduled = [];
       }
       shifts[i] = typeof scheduleResult[backendDay][i] === 'string'
         ? JSON.stringify(shift)
@@ -236,19 +410,29 @@ export async function publishSchedule(templateSlots, config, tfUtln, tfFullName)
     }
   }
 
-  // Step 5: Update the schedule with lab info
+  // Step 5: Persist schedule updates
   await apiCall('/schedule/update', 'PUT', {
     schedule_id: schedule.schedule_id,
     schedule,
   }, null);
 
+  storeScheduleId(schedule.schedule_id);
+
   return { success: true, schedule };
 }
 
 export async function getTFSchedule() {
-  // TODO: GET /api/tf/schedule
-  // Should return: { shifts: [...], weekRange: 'MM/DD - MM/DD', tas: [{ utln, name }] }
-  return new Promise((resolve) => setTimeout(() => resolve({}), 500));
+  const schedule = await getActiveScheduleDocument();
+
+  return {
+    shifts: mapScheduleDocumentToShifts(schedule),
+    scheduleId: schedule.schedule_id,
+    config: {
+      earliestStart: schedule.start_interval_time,
+      latestEnd: schedule.end_interval_time,
+      slotDuration: Number(schedule.shift_duration) || 30,
+    },
+  };
 }
 
 // --- Utilities ---
