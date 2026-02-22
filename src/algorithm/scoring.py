@@ -1,46 +1,5 @@
 from data_access import *
-from dummy_data_big import Day # TODO change this!
-
-# ============================================================
-# SHIFT PRIORITY
-# Higher score = more important = remove last
-# ============================================================
-
-DAY_PRIORITY = {
-    Day.TUESDAY:   3,
-    Day.WEDNESDAY: 3,
-    Day.THURSDAY:  3,
-    Day.MONDAY:    2,
-    Day.FRIDAY:    2,
-    Day.SATURDAY:  1,
-    Day.SUNDAY:    1,
-}
-
-def time_priority(shift):
-    """
-    Later shifts get higher priority since more students attend afternoon/evening OH.
-    Bucketed into three tiers based on start time.
-    """
-    hour = shift["start"].hour
-    if hour >= 17:
-        return 3   # evening
-    elif hour >= 12:
-        return 2   # afternoon
-    else:
-        return 1   # morning
-
-def shift_priority(ctx, shift_id):
-    """
-    Combined priority score for a shift.
-    Higher = more important = should be removed last during reduction.
-    Labs always get a bonus since they're hardest to replace.
-    """
-    shift      = get_shift(ctx, shift_id)
-    day_score  = DAY_PRIORITY.get(shift["day"], 1)
-    time_score = time_priority(shift)
-    lab_bonus  = 2 if shift["is_lab"] else 0
-
-    return day_score + time_score + lab_bonus
+from constraints import *
 
 # ============================================================
 # SCHEDULE SCORING
@@ -56,12 +15,10 @@ ROLE_WEIGHTS = {
 def score_schedule(ctx, schedule):
     total = 0
     for shift_id, assignment in schedule.items():
-        for ta_id in assignment["leads"]:
-            total += ROLE_WEIGHTS["lead"]   * get_pref(ctx, ta_id, shift_id)
-        for ta_id in assignment["lab_tas"]:
-            total += ROLE_WEIGHTS["lab_ta"] * get_pref(ctx, ta_id, shift_id)
-        for ta_id in assignment["oh_tas"]:
-            total += ROLE_WEIGHTS["oh_ta"]  * get_pref(ctx, ta_id, shift_id)
+        for role, role_key in [("lead", "leads"), ("lab_ta", "lab_tas"), ("oh_ta", "oh_tas")]:
+            for ta_id in assignment[role_key]:
+                total += ROLE_WEIGHTS[role] * get_pref(ctx, ta_id, shift_id)
+                total += experience_penalty(ctx, ta_id, shift_id, schedule)
     return total
 
 # ============================================================

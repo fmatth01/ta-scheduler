@@ -32,10 +32,12 @@ def greedy_assign(ctx):
     def candidate_score(ta_id, shift_id):
         ta = get_ta(ctx, ta_id)
         pref = get_pref(ctx, ta_id, shift_id)
+        
         hours_below_min = max(0, ta["min_hours"] - hours_assigned[ta_id])
         balance_boost   = hours_below_min / ta["min_hours"] if ta["min_hours"] > 0 else 0
+        exp_penalty     = experience_penalty(ctx, ta_id, shift_id, schedule)
         
-        return pref + balance_boost 
+        return pref + balance_boost + exp_penalty 
 
     # Assign correct number of TAs to the shift, role
     def fill_role(shift, role, num_needed):

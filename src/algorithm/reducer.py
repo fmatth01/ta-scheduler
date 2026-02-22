@@ -1,5 +1,6 @@
 from copy import deepcopy
 from data_access import *
+from constraints import *
 from scoring import *
 
 # ============================================================
