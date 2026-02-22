@@ -17,11 +17,24 @@ export default function EmojiCodeInput({ value = [], onChange, disabled = false 
   const hiddenInputRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const prevValueLengthRef = useRef(value.length);
+
+  const focusHiddenInput = useCallback(() => {
+    if (disabled) return;
+    hiddenInputRef.current?.focus();
+  }, [disabled]);
 
   const handleEmojiClick = useCallback((emoji) => {
     if (disabled || value.length >= 5) return;
-    onChange([...value, emoji]);
-  }, [disabled, value, onChange]);
+    const next = [...value, emoji];
+    onChange(next);
+    if (next.length >= 5) {
+      hiddenInputRef.current?.blur();
+      return;
+    }
+    setActiveIndex(Math.min(next.length, 4));
+    focusHiddenInput();
+  }, [disabled, value, onChange, focusHiddenInput]);
 
   const handleSlotRemove = useCallback((event, index) => {
     event.stopPropagation();
@@ -40,13 +53,13 @@ export default function EmojiCodeInput({ value = [], onChange, disabled = false 
     if (!emojis.length) return;
     event.preventDefault();
     onChange(emojis);
+    if (emojis.length >= 5) {
+      hiddenInputRef.current?.blur();
+      return;
+    }
     setActiveIndex(Math.min(emojis.length, 4));
-  }, [disabled, onChange]);
-
-  const focusHiddenInput = useCallback(() => {
-    if (disabled) return;
-    hiddenInputRef.current?.focus();
-  }, [disabled]);
+    focusHiddenInput();
+  }, [disabled, onChange, focusHiddenInput]);
 
   const handleSlotFocus = useCallback((index) => {
     if (disabled) return;
@@ -65,21 +78,29 @@ export default function EmojiCodeInput({ value = [], onChange, disabled = false 
     if (event.target.value) event.target.value = '';
   }, []);
 
-  useEffect(() => {
+  const handleHiddenInputKeyDown = useCallback((event) => {
     if (disabled) return;
-    const handleKeyDown = (e) => {
-      if (e.key === 'Backspace' && value.length > 0) {
-        e.preventDefault();
-        onChange(value.slice(0, -1));
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    if (event.key === 'Backspace' && value.length > 0) {
+      event.preventDefault();
+      onChange(value.slice(0, -1));
+    }
   }, [disabled, value, onChange]);
 
   useEffect(() => {
-    setActiveIndex((prev) => Math.min(prev, Math.min(value.length, 4)));
+    if (value.length >= 5 && document.activeElement === hiddenInputRef.current) {
+      hiddenInputRef.current.blur();
+    }
   }, [value.length]);
+
+  useEffect(() => {
+    const previousLength = prevValueLengthRef.current;
+    if (value.length > previousLength) {
+      setActiveIndex(Math.min(value.length, 4));
+    } else if (value.length < previousLength || activeIndex > value.length) {
+      setActiveIndex((prev) => Math.min(prev, Math.min(value.length, 4)));
+    }
+    prevValueLengthRef.current = value.length;
+  }, [value.length, activeIndex]);
 
   return (
     <div
@@ -96,6 +117,7 @@ export default function EmojiCodeInput({ value = [], onChange, disabled = false 
         className="absolute opacity-0 -z-10 pointer-events-none"
         onPaste={handlePaste}
         onChange={handleHiddenInputChange}
+        onKeyDown={handleHiddenInputKeyDown}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       />
@@ -130,7 +152,9 @@ export default function EmojiCodeInput({ value = [], onChange, disabled = false 
               )
               : ''}
             {isFocused && activeIndex === i && (
-              <span className="absolute top-2 bottom-2 right-2 w-0.5 bg-gray-500 animate-pulse" />
+              <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <span className="block h-8 w-0.5 bg-gray-500 animate-pulse" />
+              </span>
             )}
           </div>
         ))}
