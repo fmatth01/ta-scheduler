@@ -102,7 +102,7 @@ export default function ScheduleGrid({
   return (
     <div className="relative select-none" onMouseUp={handleMouseUp} onMouseLeave={() => { isDragging.current = false; }}>
       <div className="overflow-auto max-h-[calc(100vh-200px)] border border-gray-200 rounded-lg">
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse h-[70vh]">
           <thead className="sticky top-0 z-10">
             <tr className="bg-gray-50">
               <th className="w-20 p-2 text-xs font-medium text-gray-500 border-b border-r border-gray-200 bg-gray-50">

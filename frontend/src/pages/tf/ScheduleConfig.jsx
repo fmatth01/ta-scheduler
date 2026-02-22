@@ -64,21 +64,21 @@ export default function ScheduleConfig() {
   const sidebar = (
     <>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+        <label className="block text-lg font-medium text-gray-700 mb-1">Full name</label>
         <input
           type="text"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           placeholder="John Smith"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint"
+          className="w-full bg-white px-3 py-2 border border-gray-300 rounded-lg text-lg outline-none focus:ring-2 focus:ring-mint"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-lg font-medium text-gray-700 mb-1">
           utlns of other approved TFs
         </label>
-        <p className="text-xs text-gray-500 mb-1 italic">(separated with enter)</p>
+        <p className="text-sm text-gray-500 mb-1 italic">(separated with enter)</p>
         <ChipInput
           value={config.approvedTFs}
           onChange={(tfs) => updateConfig({ approvedTFs: tfs })}
@@ -87,27 +87,27 @@ export default function ScheduleConfig() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Earliest shift start time</label>
+        <label className="block text-lg font-medium text-gray-700 mb-1">Earliest shift start time</label>
         <input
           type="time"
           value={config.earliestStart}
           onChange={(e) => updateConfig({ earliestStart: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint"
+          className="w-full bg-white px-3 py-2 border border-gray-300 rounded-lg text-lg outline-none focus:ring-2 focus:ring-mint"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Latest shift end time</label>
+        <label className="block text-lg font-medium text-gray-700 mb-1">Latest shift end time</label>
         <input
           type="time"
           value={config.latestEnd}
           onChange={(e) => updateConfig({ latestEnd: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint"
+          className="w-full bg-white px-3 py-2 border border-gray-300 rounded-lg text-lg outline-none focus:ring-2 focus:ring-mint"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-lg font-medium text-gray-700 mb-1">
           Time duration of lab/office hours (min)
         </label>
         <input
@@ -116,18 +116,18 @@ export default function ScheduleConfig() {
           onChange={(e) => updateConfig({ slotDuration: parseInt(e.target.value) || 30 })}
           min={15}
           step={15}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint"
+          className="w-full bg-white px-3 py-2 border border-gray-300 rounded-lg text-lg outline-none focus:ring-2 focus:ring-mint"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Number of TAs per shift</label>
+        <label className="block text-lg font-medium text-gray-700 mb-1">Number of TAs per shift</label>
         <input
           type="number"
           value={config.tasPerShift}
           onChange={(e) => updateConfig({ tasPerShift: parseInt(e.target.value) || 1 })}
           min={1}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-mint"
+          className="w-full bg-white px-3 py-2 border border-gray-300 rounded-lg text-lg outline-none focus:ring-2 focus:ring-mint"
         />
       </div>
 
@@ -135,8 +135,8 @@ export default function ScheduleConfig() {
 
       <div className="mt-auto pt-4">
         <Button
-          variant="green"
-          className="w-full py-3"
+          variant="primary"
+          className="w-full py-4 text-lg"
           onClick={handleGenerate}
           loading={generating}
         >
@@ -157,10 +157,10 @@ export default function ScheduleConfig() {
             onChange={setEditMode}
           />
         </div>
-        <p className="text-sm text-gray-500 mb-1">
+        <p className="text-lg text-gray-500 mb-1">
           Click on a cell to create a shift slot.
         </p>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-lg text-gray-500 mb-4">
           Click on a shift to toggle between OH and Lab.
         </p>
         <ScheduleGrid
@@ -174,6 +174,7 @@ export default function ScheduleConfig() {
         <div className="mt-4 flex justify-end">
           <Button
             variant="primary"
+            className="text-lg"
             onClick={handlePublish}
             loading={publishing}
           >

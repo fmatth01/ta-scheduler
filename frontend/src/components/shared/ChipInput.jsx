@@ -44,7 +44,7 @@ export default function ChipInput({ value = [], onChange, placeholder = 'Type an
         onChange={(e) => setInputText(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={value.length === 0 ? placeholder : ''}
-        className="flex-1 min-w-[80px] outline-none text-sm py-1 bg-transparent"
+        className="flex-1 min-w-[80px] outline-none text-lg py-1 bg-transparent"
       />
     </div>
   );
