@@ -7,7 +7,26 @@ const router = express.Router();
 const mongodbPromise = require('../utils/mongo');
 const { schedule_schema } = require('../schemas/schedule')
 
-
+/* * GET /getSchedule :
+ *      summary: grabs a schedule from 'ta-scheduler' DB's 'schedule' collection 
+ * 
+ *      requestQuery:
+ *          required: true
+ *          content:
+ *              schedule_id : int
+ *                  required:
+ *                      - schedule_id
+ * 
+ *      responses:
+ *        200:
+ *          description: - returns a JSON of the schedule object from Mongo
+ *        400:
+ *          description: - invalid param
+ *        404:
+ *          description: - schedule with the provided ID isn't in Mongo
+ *        500:
+ *          description: - an error message and the error caught
+ * */
 router.get('/getSchedule', async (req, res) => {
     try {
         const client = await mongodbPromise;
@@ -35,6 +54,8 @@ router.get('/getSchedule', async (req, res) => {
         });
     }
 });
+
+
 
 
 module.exports = router;

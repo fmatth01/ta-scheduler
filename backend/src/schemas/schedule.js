@@ -17,13 +17,13 @@ const shifts_schema = Joi.object({
 
 const schedule_schema = Joi.object({
     schedule_id: Joi.number().required(),
-    monday: Joi.array().items(Joi.number()),
-    tuesday: Joi.array().items(Joi.number()),
-    wednesday: Joi.array().items(Joi.number()),
-    thursday: Joi.array().items(Joi.number()),
-    friday: Joi.array().items(Joi.number()),
-    saturday: Joi.array().items(Joi.number()),
-    sunday: Joi.array().items(Joi.number()),
+    monday: Joi.array().items(shifts_schema),
+    tuesday: Joi.array().items(shifts_schema),
+    wednesday: Joi.array().items(shifts_schema),
+    thursday: Joi.array().items(shifts_schema),
+    friday: Joi.array().items(shifts_schema),
+    saturday: Joi.array().items(shifts_schema),
+    sunday: Joi.array().items(shifts_schema),
 })
 
 module.exports = { shifts_schema, schedule_schema }

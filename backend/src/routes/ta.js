@@ -7,7 +7,7 @@ const router = express.Router();
 const mongodbPromise = require('../utils/mongo');
 const { ta_schema } = require('../schemas/ta');
 
-/* * GET /create :
+/* * POST /create :
  *      summary: creates a new TA in the 'ta-scheduler' database 'ta' collection 
  * 
  *      requestBody:
@@ -36,11 +36,11 @@ const { ta_schema } = require('../schemas/ta');
  * 
  *      responses:
  *        200:
- *          description: - json with a success message and survey id returned.
+ *          description: - a success message and document id returned.
  *        400:
  *          description: - error message when invalid request body is sent to endpoint
  *        500:
- *          description: - json with an error message and the error caught
+ *          description: - an error message and the error caught
  * */
 router.post('/create', async (req, res) => {
 
