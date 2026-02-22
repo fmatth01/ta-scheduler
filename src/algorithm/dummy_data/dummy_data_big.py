@@ -1,14 +1,5 @@
-from enum import Enum
 from datetime import time
-
-class Day(Enum):
-    MONDAY    = "Monday"
-    TUESDAY   = "Tuesday"
-    WEDNESDAY = "Wednesday"
-    THURSDAY  = "Thursday"
-    FRIDAY    = "Friday"
-    SATURDAY  = "Saturday"
-    SUNDAY    = "Sunday"
+from data.context import Day
 
 # ============================================================
 # 25 TAs
