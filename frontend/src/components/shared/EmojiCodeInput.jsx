@@ -117,17 +117,18 @@ export default function EmojiCodeInput({ value = [], onChange, disabled = false 
               ${isFocused && activeIndex === i ? 'border-mint-400 shadow-[0_0_0_2px_rgba(16,185,129,0.2)]' : ''}
             `}
           >
-            {value[i] || ''}
-            {value[i] && (
-              <button
-                type="button"
-                className="absolute -top-1 -right-1 w-4 h-4 text-[10px] rounded-full bg-gray-200 hover:bg-red-400 hover:text-white flex items-center justify-center"
-                onClick={(event) => handleSlotRemove(event, i)}
-                aria-label={`Remove emoji ${value[i]} from slot ${i + 1}`}
-              >
-                ×
-              </button>
-            )}
+            {value[i]
+              ? (
+                <button
+                  type="button"
+                  className="w-full h-full flex items-center justify-center text-4xl leading-none cursor-pointer bg-transparent border-0 p-0 focus:outline-none"
+                  onClick={(event) => handleSlotRemove(event, i)}
+                  aria-label={`Remove emoji ${value[i]} from slot ${i + 1}`}
+                >
+                  {value[i]}
+                </button>
+              )
+              : ''}
             {isFocused && activeIndex === i && (
               <span className="absolute top-2 bottom-2 right-2 w-0.5 bg-gray-500 animate-pulse" />
             )}
