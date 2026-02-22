@@ -120,6 +120,76 @@ const parsePreferenceString = (str) => {
     };
 };
 
+/* * POST /get_schedule :
+ *      summary: retrieve schedule from ta and send it back to res  
+ * 
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              json:
+ *                schema:
+ *                  properties:
+ *                    ta_id:
+ *                      type: String
+ *                    first_name:
+ *                      type: String
+ *                    last_name:
+ *                      type: String
+ *                    is_tf:
+ *                      type: Bool
+ *                    lab_perm:
+ *                      type: Int
+ * 
+ *                  required:
+ *                      - ta_id
+ * 
+ *      responses:
+ *        200:
+ *          description: - a success message and document id returned.
+ *        400:
+ *          description: - error message when invalid request body is sent to endpoint
+ *        500:
+ *          description: - an error message and the error caught
+ * */
+router.post('/get_schedule', async (req, res) => {
+
+    try {
+        const client = await mongodbPromise;
+        const db = client.db('ta-scheduler');
+        const collection = db.collection('ta');
+
+        
+        const { ta_id } = req.body;
+        
+        // Add simple check to make sure ta_id exists
+        if (!ta_id) {
+            return res.status(400).send({ message: 'ta_id is required' });
+        }
+        
+        const ta_schedule = await collection.findOne({ ta_id: ta_id });
+        
+        if (!ta_schedule) {
+            return res.status(404).send({ message: 'TA not found' });
+        }
+        
+        const confirmedShifts = ta_schedule.confirmed_shifts;
+        
+        res.status(200).send({
+            message: 'TA schedule sent successfully',
+            confirmedShifts: confirmedShifts
+        });
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            'message': 'Error connecting to MongoDB: ',
+            error
+        });
+    }
+}
+); 
+
+
 // Ex. [DAY: HH:MM-HH:MM:int[0-2]]
 router.post('/preferences', async (req, res) => {
     // 1. We are grabbing TA from TA schema
