@@ -67,10 +67,12 @@ export async function getTFSchedule() {
 
 // --- Utilities ---
 
-export async function copyScheduleAsText(schedule) {
-  // TODO: Format schedule data into text and copy to clipboard
-  // Format TBD by team
-  const text = 'Schedule text format TBD';
+export async function copyScheduleAsText(scheduleOrText) {
+  // Accept prebuilt text (string) or schedule objects.
+  // TODO: if schedule object is passed, format it once backend contract is finalized.
+  const text = typeof scheduleOrText === 'string'
+    ? scheduleOrText
+    : 'Schedule text format TBD';
   await navigator.clipboard.writeText(text);
   return text;
 }

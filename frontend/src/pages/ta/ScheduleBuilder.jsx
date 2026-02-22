@@ -30,7 +30,7 @@ function generateTimeSlots(startHour, endHour, slotMinutes) {
 
 export default function ScheduleBuilder() {
   const navigate = useNavigate();
-  const { utln, name: authName } = useAuth();
+  const { utln, name: authName, setName, setUtln } = useAuth();
   const { availability, setAvailability, clearAvailability, config } = useSchedule();
 
   const [fullName, setFullName] = useState(authName || '');
@@ -70,11 +70,22 @@ export default function ScheduleBuilder() {
       setError('Please answer both lab preference questions.');
       return;
     }
+    const normalizedName = fullName.trim();
+    const normalizedUTLN = userUTLN.trim();
+
+    setName(normalizedName);
+    setUtln(normalizedUTLN);
+    try {
+      localStorage.setItem('ta_profile', JSON.stringify({ name: normalizedName, utln: normalizedUTLN }));
+    } catch {
+      // localStorage may be unavailable
+    }
+
     setError('');
     setLoading(true);
     try {
-      await submitAvailability(userUTLN, availability, { labLead, labAssistant });
-      navigate('/viewer');
+      await submitAvailability(normalizedUTLN, availability, { labLead, labAssistant });
+      navigate('/viewer', { state: { taProfile: { name: normalizedName, utln: normalizedUTLN } } });
     } catch {
       setError('Failed to submit availability. Please try again.');
     } finally {
@@ -98,56 +109,56 @@ export default function ScheduleBuilder() {
   const sidebar = (
     <>
       <div>
-        <label className="block text-md font-medium text-gray-700 mb-1 mt-3">Full name</label>
+        <label className="block text-lg font-medium text-gray-700 mb-1 mt-3">Full name</label>
         <input
           type="text"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           placeholder="John Smith"
-          className={`w-full px-3 py-2 border rounded-lg text-sm bg-gray-100 text-gray-500 outline-none focus:ring-2 focus:ring-mint ${
+          className={`w-full px-3 py-2 border rounded-lg text-log bg-gray-100 text-gray-500 outline-none focus:ring-2 focus:ring-mint ${
             error && !fullName.trim() ? 'border-red-400' : 'border-gray-300'
           }`}
         />
       </div>
 
       <div>
-        <label className="block text-md font-medium text-gray-700 mb-1">UTLN</label>
+        <label className="block text-lg font-medium text-gray-700 mb-1">utln</label>
         <input
           type="text"
           value={userUTLN}
           onChange={(e) => setUTLN(e.target.value)}
           placeholder="jsmith01"
-          className={`w-full px-3 py-2 border rounded-lg text-sm bg-gray-100 text-gray-500 outline-none focus:ring-2 focus:ring-mint ${
+          className={`w-full px-3 py-2 border rounded-lg text-lg bg-gray-100 text-gray-500 outline-none focus:ring-2 focus:ring-mint ${
             error && !userUTLN.trim() ? 'border-red-400' : 'border-gray-300'
           }`}
         />
       </div>
 
       <div>
-        <p className="text-md font-medium text-gray-700 mb-1 mt-7">
+        <p className="text-lg font-medium text-gray-700 mb-1 mt-7">
           Would you be willing to be a lab lead?
         </p>
-        <p className="text-sm text-gray-500 mb-2 italic">
+        <p className="text-md text-gray-500 mb-2 italic">
           Note: Lab leads need at least one semester of experience as a lab assistant.
         </p>
         <div className="flex gap-4">
-          <label className="flex items-center gap-1.5 text-md cursor-pointer">
+          <label className="flex items-center gap-1.5 text-lg cursor-pointer">
             <input
               type="radio"
               name="labLead"
               checked={labLead === true}
               onChange={() => setLabLead(true)}
-              className="accent-blue"
+              className="accent-blue w-4 h-4"
             />
             Yes
           </label>
-          <label className="flex items-center gap-1.5 text-md cursor-pointer">
+          <label className="flex items-center gap-1.5 text-lg cursor-pointer">
             <input
               type="radio"
               name="labLead"
               checked={labLead === false}
               onChange={() => setLabLead(false)}
-              className="accent-blue"
+              className="accent-blue w-4 h-4"
             />
             No
           </label>
@@ -155,27 +166,27 @@ export default function ScheduleBuilder() {
       </div>
 
       <div>
-        <p className="text-md font-medium text-gray-700 mb-1">
+        <p className="text-lg font-medium text-gray-700 mb-1">
           Would you be willing to be a lab assistant?
         </p>
         <div className="flex gap-4">
-          <label className="flex items-center gap-1.5 text-md cursor-pointer">
+          <label className="flex items-center gap-1.5 text-lg cursor-pointer">
             <input
               type="radio"
               name="labAssistant"
               checked={labAssistant === true}
               onChange={() => setLabAssistant(true)}
-              className="accent-blue"
+              className="accent-blue w-4 h-4"
             />
             Yes
           </label>
-          <label className="flex items-center gap-1.5 text-md cursor-pointer">
+          <label className="flex items-center gap-1.5 text-lg cursor-pointer">
             <input
               type="radio"
               name="labAssistant"
               checked={labAssistant === false}
               onChange={() => setLabAssistant(false)}
-              className="accent-blue"
+              className="accent-blue w-4 h-4"
             />
             No
           </label>
@@ -191,15 +202,18 @@ export default function ScheduleBuilder() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-4">TA Schedule Builder</h1>
         <div className="flex items-center gap-4 mb-2">
-          <div className="bg-shift-green py-1 px-7 rounded-xl font-semibold text-white text-lg">
-            Preferred
+          <div className="bg-shift-pink py-1 px-7 rounded-xl font-semibold text-white text-lg">
+            Preferred Availability
           </div>
-          <div className="bg-shift-yellow py-1 px-7 rounded-xl font-semibold text-white text-lg">
-            Available
+          <div className="bg-shift-blue py-1 px-7 rounded-xl font-semibold text-white text-lg">
+            General Availability
+          </div>
+          <div className="bg-white py-1 px-7 rounded-xl font-semibold text-black text-lg shadow-md border border-gray-200">
+            Empty
           </div>
         </div>
         <p className="text-lg text-gray-500 italic mb-3 mt-3">
-          Click on a slot to cycle availability: empty → Preferred → Available → empty.
+          Click or drag on a time slot to cycle availability type
         </p>
         <ScheduleGrid
           mode="builder"

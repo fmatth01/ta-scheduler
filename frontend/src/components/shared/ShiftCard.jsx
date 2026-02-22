@@ -9,8 +9,15 @@ const typeColors = {
   },
 };
 
-export default function ShiftCard({ day, startTime, endTime, type = 'oh', assignedTAs }) {
-  const colors = typeColors[type] || typeColors.oh;
+const colorOverrides = {
+  pink: {
+    border: 'border-shift-pink',
+    bg: 'bg-shift-pink/20',
+  },
+};
+
+export default function ShiftCard({ day, startTime, endTime, type = 'oh', assignedTAs, colorOverride }) {
+  const colors = (colorOverride && colorOverrides[colorOverride]) || typeColors[type] || typeColors.oh;
 
   return (
     <div className={`rounded-lg border-l-4 ${colors.border} ${colors.bg} p-3 shadow-sm`}>
