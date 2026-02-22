@@ -1,18 +1,19 @@
 const Joi = require('joi');
 
-const staffing_capacity_schema = Joi.object({
-    num_tas: Joi.number().min(1).required(),
-    lab_perm: Joi.number().min(0).max(2).required(), /* 0 - OH, 1 - LabAssist, 2 - LabLead */
-})
+const staff_capacity_schema = Joi.array().length(2).ordered(
+    /* lab_perm */      Joi.number().integer().min(0).max(2), /* 0 - OH, 1 - LabAssist, 2 - LabLead */
+    /* num_tas */       Joi.number().integer().min(1)   
+).required();
 
 const shifts_schema = Joi.object({
-    shift_id: Joi.number().required(),
-    start_time: Joi.date().required(),
-    end_time: Joi.date().required(),
+    shift_id: Joi.string().required(),
+    schedule_id: Joi.number().required(),
+    start_time: Joi.string().required(),
+    end_time: Joi.string().required(),
     is_lab: Joi.boolean().required(),
     is_empty: Joi.boolean().default(true),
     tas_scheduled: Joi.array().items(Joi.string()).default([]),
-    staffing_capacity: staffing_capacity_schema
+    staffing_capacity: staff_capacity_schema
 })
 
 const schedule_schema = Joi.object({
