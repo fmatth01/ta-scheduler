@@ -60,7 +60,7 @@ def greedy_assign(ctx):
         [s for s in ctx.shift_metadata if s["is_lab"]],
         key=lambda s: sum(
             1 for ta in ctx.ta_metadata
-            if ta["lab_admin_status"] >= 3
+            if ta["lab_admin_status"] >= 2
             and get_pref(ctx, ta["ta_id"], s["shift_id"]) > 0
         )
     )

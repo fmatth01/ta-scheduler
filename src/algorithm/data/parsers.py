@@ -27,6 +27,8 @@ DAY_PREFIX_MAP = {
 
 def parse_time(hhmm):
     """Convert 'HH:MM' string to a Python time object."""
+    if hhmm == "00:00":
+        hhmm = "23:59"
     hh, mm = map(int, hhmm.split(":"))
     if hh == 24:
         hh = 23
