@@ -144,7 +144,7 @@ export default function EmojiCodeInput({ value = [], onChange, disabled = false 
               onClick={() => handleEmojiClick(emoji)}
               disabled={value.length >= 5}
               className={`
-                w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-xl
+                w-14 h-14 rounded-lg border border-gray-200 flex items-center justify-center text-4xl
                 transition-colors cursor-pointer
                 hover:bg-gray-100 hover:border-gray-300
                 disabled:opacity-50 disabled:cursor-not-allowed
