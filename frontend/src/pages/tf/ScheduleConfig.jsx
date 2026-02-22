@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../../components/layout/AppLayout';
 import Button from '../../components/shared/Button';
-import RoleToggle from '../../components/shared/RoleToggle';
 import ChipInput from '../../components/shared/ChipInput';
 import ScheduleGrid from '../../components/shared/ScheduleGrid';
 import { useAuth } from '../../contexts/AuthContext';
@@ -105,7 +104,7 @@ export default function ScheduleConfig() {
         <label className="block text-lg font-medium text-gray-700 mb-1">
           UTLNs of other approved TFs
         </label>
-        <p className="text-sm text-gray-500 mb-1 italic">(separated with enter)</p>
+        <p className="text-md text-gray-500 mb-1 italic">(separated with enter)</p>
         <ChipInput
           value={config.approvedTFs}
           onChange={(tfs) => updateConfig({ approvedTFs: tfs })}
@@ -146,7 +145,7 @@ export default function ScheduleConfig() {
               } ${
                 config.slotDuration === duration
                   ? 'bg-gray-200 text-gray-700'
-                  : 'text-gray-700 hover:bg-gray-50 bg-white'
+                  : 'text-gray-700 hover:bg-gray-50 cursor-pointer bg-white'
               }`}
             >
               {duration}
@@ -175,17 +174,18 @@ export default function ScheduleConfig() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-4">TA Schedule Configuration</h1>
         <div className="flex items-center gap-4 mb-2">
-          <RoleToggle
-            options={['Office Hours', 'Lab Shifts']}
-            value={editMode}
-            onChange={setEditMode}
-          />
+          <div className="bg-shift-blue py-1 px-7 rounded-xl font-semibold text-white text-lg">
+            Office Hours
+          </div>
+          <div className="bg-shift-yellow py-1 px-7 rounded-xl font-semibold text-white text-lg">
+            Lab Shifts
+          </div>
         </div>
-        <p className="text-lg text-gray-500 mb-1">
-          Click on a cell to create a shift slot.
+        <p className="text-lg text-gray-500 italic">
+          Click on an "x" to remove a block of availability
         </p>
-        <p className="text-lg text-gray-500 mb-4">
-          Click on a shift to toggle between OH and Lab.
+        <p className="text-lg text-gray-500 mb-4 italic">
+          Click on a shift to toggle between lab and OH
         </p>
         <ScheduleGrid
           mode="tf-config"

@@ -116,11 +116,11 @@ export default function ScheduleGrid({
         <table className="w-full border-collapse h-[70vh]">
           <thead className="sticky top-0 z-10">
             <tr className="bg-gray-50">
-              <th className="w-20 p-2 text-xs font-medium text-gray-500 border-b border-r border-gray-200 bg-gray-50">
+              <th className="w-20 p-2 text-md font-medium text-gray-500 border-b border-r border-gray-200 bg-gray-50">
                 Time
               </th>
               {DAYS.map((day) => (
-                <th key={day} className="p-2 text-xs font-medium text-gray-700 border-b border-r border-gray-200 bg-gray-50 min-w-[100px]">
+                <th key={day} className="p-2 text-md font-medium text-gray-700 border-b border-r border-gray-200 bg-gray-50 min-w-[100px]">
                   {day}
                 </th>
               ))}
@@ -129,7 +129,7 @@ export default function ScheduleGrid({
           <tbody>
             {timeSlots.map((time, rowIdx) => (
               <tr key={time}>
-                <td className="p-1 content-baseline text-xs text-gray-500 border-r border-b border-gray-200 text-right pr-2 bg-gray-50 whitespace-nowrap">
+                <td className="p-1 content-baseline text-md text-gray-500 border-r border-b border-gray-200 text-right pr-2 bg-gray-50 whitespace-nowrap">
                   {formatTime(time)}
                 </td>
                 {DAYS.map((day) => {
