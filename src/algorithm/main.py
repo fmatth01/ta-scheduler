@@ -13,6 +13,11 @@ SCHEDULE_ID = 1
 # BUILD CONTEXT AND RUN SCHEDULER
 # ============================================================
 
+raw_tas           = fetch_tas()
+ta_metadata       = parse_tas(raw_tas)
+shift_metadata    = fetch_shifts(SCHEDULE_ID)
+preference_matrix = parse_preference_matrix(raw_tas)
+
 ctx = SchedulerContext(ta_metadata, shift_metadata, preference_matrix)
 
 apply_fairness(ctx)

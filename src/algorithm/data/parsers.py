@@ -61,6 +61,40 @@ def parse_shifts(raw_schedule):
 
     return shifts
 
+def parse_tas(raw_tas):
+    """
+    Convert array of TA documents from MongoDB into the format
+    our scheduler expects.
+    """
+    tas = []
+    for ta in raw_tas:
+        tas.append({
+            "ta_id":             ta["ta_id"],
+            "name":              f"{ta['first_name']} {ta['last_name']}",
+            "is_tf":             ta["is_tf"],
+            "lab_admin_status":  ta["lab_perm"],
+
+            # Fields not in schema yet — using defaults
+            "experienced":       ta.get("experienced", False),
+            "min_hours":         ta.get("min_hours", 2),
+            "max_hours":         ta.get("max_hours", 6),
+            "companions":        ta.get("companions", []),
+        })
+    return tas
+
+def parse_preference_matrix(raw_tas):
+    """
+    Build preference matrix dict from preferences embedded in TA documents.
+    Returns {ta_id: {shift_id: score}} matching our scheduler's format.
+    """
+    matrix = {}
+    for ta in raw_tas:
+        ta_id = ta["ta_id"]
+        matrix[ta_id] = {}
+        for pref in ta.get("preferences", []):
+            matrix[ta_id][pref["shift_id"]] = pref["preference"]
+    return matrix
+
 # ============================================================
 # PARSE OUTPUT
 # ============================================================
