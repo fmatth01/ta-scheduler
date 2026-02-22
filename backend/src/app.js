@@ -16,5 +16,10 @@ app.use(cors());
 app.use(express.json());
 
 
+/* Routes */
+const ta_routes = require('./routes/ta');
+
+app.use('/ta', ta_routes);
+
 
 module.exports = app;
