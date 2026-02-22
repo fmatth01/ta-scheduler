@@ -20,6 +20,8 @@ app.use(express.json());
 const ta_routes = require('./routes/ta');
 
 app.use('/ta', ta_routes);
-
+app.get('/', (req, res) => {
+    res.json({ message: 'BACKEND is working!' });
+});
 
 module.exports = app;
