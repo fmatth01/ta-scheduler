@@ -1,17 +1,15 @@
 import requests
-from parsers import *
+from data.parsers import *
 
-BASE_URL = "https://ta-scheduler.vercel.app"
+BASE_URL = "http://localhost:3000"
 
-def fetch_schedule(schedule_id):
-    response = requests.get(f"{BASE_URL}/schedule/getSchedule", params={"schedule_id": schedule_id})
+def fetch_schedule():
+    response = requests.get(f"{BASE_URL}/schedule/importDataToAlg")
     response.raise_for_status()
-    return response.json()
-
-def fetch_tas():
-    response = requests.get(f"{BASE_URL}/ta/getTAs")
-    response.raise_for_status()
-    return response.json()
+    print(f"Status: {response.status_code}")
+    print(f"Body: {response.text}")
+    data = response.json()
+    return data["tas"], data["schedule"]
 
 def fetch_shifts(raw_schedule):
     return parse_shifts(raw_schedule)

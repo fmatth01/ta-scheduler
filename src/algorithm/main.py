@@ -13,8 +13,10 @@ SCHEDULE_ID = 1
 # BUILD CONTEXT AND RUN SCHEDULER
 # ============================================================
 
-raw_schedule  = fetch_schedule(SCHEDULE_ID)
-raw_tas       = fetch_tas()
+raw_tas, raw_schedule  = fetch_schedule()
+
+print(raw_tas)
+print(raw_schedule)
 shift_metadata    = fetch_shifts(raw_schedule)
 ta_metadata       = parse_tas(raw_tas)
 preference_matrix = parse_preference_matrix(raw_tas, shift_metadata)
