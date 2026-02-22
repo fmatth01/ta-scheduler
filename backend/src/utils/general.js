@@ -74,7 +74,12 @@ function timeToMinutes(hhmm) {
  */
 function countShifts(start_time, end_time, shift_duration) {
     const start = timeToMinutes(start_time);
-    const end = timeToMinutes(end_time);
+    let end = timeToMinutes(end_time);
+
+    // In schedule configuration, "00:00" is used to mean "end of day".
+    if (end <= start && end_time === "00:00") {
+        end = 24 * 60;
+    }
 
     if (!Number.isInteger(shift_duration) || shift_duration <= 0) {
         throw new Error("shift_duration must be a positive integer");
@@ -100,7 +105,12 @@ function minutesToTime(mins) {
  */
 function getShiftTimes(start_time, end_time, shift_duration) {
   const startMinutes = timeToMinutes(start_time);
-  const endMinutes = timeToMinutes(end_time);
+  let endMinutes = timeToMinutes(end_time);
+
+  // In schedule configuration, "00:00" is used to mean "end of day".
+  if (endMinutes <= startMinutes && end_time === "00:00") {
+    endMinutes = 24 * 60;
+  }
 
   const numShifts = Math.floor((endMinutes - startMinutes) / shift_duration);
   const shifts = [];
