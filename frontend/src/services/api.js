@@ -223,6 +223,9 @@ export async function publishSchedule(templateSlots, config, tfUtln, tfFullName)
 
     for (let i = 0; i < shifts.length; i++) {
       let shift = typeof shifts[i] === 'string' ? JSON.parse(shifts[i]) : shifts[i];
+      if (!shift || !shift.start_time) {
+        continue;
+      }
       const slotKey = `${frontendDay}-${shift.start_time}`;
       if (labSlotSet.has(slotKey)) {
         shift.is_lab = true;

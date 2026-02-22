@@ -21,7 +21,7 @@ export const apiCall = async (url, method, body, token) => {
   }
   let response;
   try {
-    response = await fetch(import.meta.env.VITE_BASE_URL + url, {
+    response = await fetch("http://localhost:3000" + url, {
       method: method,
       headers: {
         ...(body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), 

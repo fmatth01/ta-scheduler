@@ -56,7 +56,7 @@ router.post('/create', async (req, res) => {
         const { error } = shifts_schema.validate(req.body);
         
         if (error) {
-            res.status(400).send(error.details[0].message);
+            return res.status(400).send(error.details[0].message);
         } else {
             const { shift_id,
                     schedule_id, 
@@ -79,11 +79,12 @@ router.post('/create', async (req, res) => {
     
             const document = await collection.insertOne(newEntry);
     
-            res.status(200).send(JSON.stringify(newEntry));
+            return res.status(200).json(newEntry);
         }
     } catch (error) {
         console.log(error);
-        res.status(500).send({
+        if (res.headersSent) return;
+        return res.status(500).send({
             'message': 'Error connecting to MongoDB: ',
             error
         });
