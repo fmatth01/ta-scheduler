@@ -135,27 +135,39 @@ router.post('/initSchedule', async (req, res) => {
 
 });
 
-
 router.put('/update', async (req, res) => {
     try {
         const client = await mongodbPromise;
         const db = client.db('ta-scheduler');
         const collection = db.collection('schedule');
 
-        const { error } = schedule_schema.validate(req.body);
+        console.log(req.body)
+        const { schedule_id, schedule } = req.body
 
-        if (error) {
-            res.status(400).send(error.details[0].message);
-        } else {
-            const { schedule_id, schedule } = req.body;
+        if (!schedule_id || !schedule) {
+            res.status(400).send("Either schedule or schedule_id");
+        }
+
+        // const { error } = schedule_schema.validate(schedule);
+
+        // if (error) {
+        //     res.status(400).send(error.details[0].message);
+        // } else {
+
+            const { _id, ...scheduleWithoutId } = schedule;
 
             const results = await collection.replaceOne(
-                {schedule_id: schedule_id},
-                schedule
+                { schedule_id: schedule_id },
+                { ...scheduleWithoutId, schedule_id }
             );
             
+            // const results = await collection.replaceOne(
+            //     {schedule_id: schedule_id},
+            //     schedule
+            // );
+            
             res.status(200).send(results);
-        }
+        // }
 
     } catch (error) {
         console.log(error);
