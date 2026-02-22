@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const mongodbPromise = require('../utils/mongo');
-const { ta_schema } = require('../schemas/ta');
+const { ta_schema, preference_schema } = require('../schemas/ta');
 const { countShifts, getShiftTimes } = require('../utils/general');
 
 /* * POST /create :
