@@ -123,7 +123,7 @@ router.post('/initSchedule', async (req, res) => {
         
         await collection.insertOne(entry);
     
-        res.status(200).send(JSON.stringify(entry));
+        return res.status(200).json(entry);
         
     } catch (error) {
         console.log(error);
@@ -144,8 +144,8 @@ router.put('/update', async (req, res) => {
         console.log(req.body)
         const { schedule_id, schedule } = req.body
 
-        if (!schedule_id || !schedule) {
-            res.status(400).send("Either schedule or schedule_id");
+        if (!Number.isInteger(schedule_id) || !schedule) {
+            return res.status(400).send("Either schedule or schedule_id");
         }
 
         // const { error } = schedule_schema.validate(schedule);
@@ -166,12 +166,13 @@ router.put('/update', async (req, res) => {
             //     schedule
             // );
             
-            res.status(200).send(results);
+            return res.status(200).send(results);
         // }
 
     } catch (error) {
         console.log(error);
-        res.status(500).send({
+        if (res.headersSent) return;
+        return res.status(500).send({
             'message': 'Error connecting to MongoDB: ',
             error
         });

@@ -15,7 +15,6 @@
  */
 
 export const apiCall = async (url, method, body, token) => {
-
   // add '/' to the beginning of the url if it is not there
   if (!url.startsWith('/')) {
     url = '/' + url;
@@ -37,8 +36,10 @@ export const apiCall = async (url, method, body, token) => {
   }
 
   if (!response.ok) {
-    console.error(response);
-    throw { status: response.status, statusText: response.statusText };
+    let body = '';
+    try { body = await response.text(); } catch {}
+    console.error('API error:', response.status, body);
+    throw { status: response.status, statusText: response.statusText, body };
   }
 
   const contentType = response.headers.get('content-type');
