@@ -54,6 +54,7 @@ router.post('/create', async (req, res) => {
         
         if (error) {
             return res.status(400).send(error.details[0].message);
+            return res.status(400).send(error.details[0].message);
         } else {
             const { ta_id, first_name, last_name, is_tf, lab_perm } = req.body;
     
