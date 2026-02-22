@@ -18,6 +18,9 @@ def fetch_preferences():
     return response.json()
 
 def post_schedule(schedule_id, payload):
-    response = requests.post(f"{BASE_URL}/schedule/saveSchedule", json=payload)
+    response = requests.put(f"{BASE_URL}/schedule/update", json={
+        "schedule_id": schedule_id,
+        "schedule": payload
+    })
     response.raise_for_status()
     return response.json()
