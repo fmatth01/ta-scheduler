@@ -18,7 +18,9 @@ app.use(express.json());
 
 /* Routes */
 const ta_routes = require('./routes/ta');
+const schedule_routes = require('./routes/schedule')
 
+app.use('/schedule', schedule_routes)
 app.use('/ta', ta_routes);
 app.get('/', (req, res) => {
     res.json({ message: 'BACKEND is working!' });

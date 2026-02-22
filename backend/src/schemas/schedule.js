@@ -1,4 +1,4 @@
-const Joi = required('joi');
+const Joi = require('joi');
 
 const staffing_capacity_schema = Joi.object({
     num_tas: Joi.number().min(1).required(),
@@ -11,19 +11,19 @@ const shifts_schema = Joi.object({
     end_time: Joi.date().required(),
     is_lab: Joi.boolean().required(),
     is_empty: Joi.boolean().default(true),
-    tas_scheduled: Joi.array.items(Joi.string()).default([]),
+    tas_scheduled: Joi.array().items(Joi.string()).default([]),
     staffing_capacity: staffing_capacity_schema
 })
 
 const schedule_schema = Joi.object({
     schedule_id: Joi.number().required(),
-    monday: Joi.array(Joi.number()),
-    tuesday: Joi.array(Joi.number()),
-    wednesday: Joi.array(Joi.number()),
-    thursday: Joi.array(Joi.number()),
-    friday: Joi.array(Joi.number()),
-    saturday: Joi.array(Joi.number()),
-    sunday: Joi.array(Joi.number()),
+    monday: Joi.array().items(Joi.number()),
+    tuesday: Joi.array().items(Joi.number()),
+    wednesday: Joi.array().items(Joi.number()),
+    thursday: Joi.array().items(Joi.number()),
+    friday: Joi.array().items(Joi.number()),
+    saturday: Joi.array().items(Joi.number()),
+    sunday: Joi.array().items(Joi.number()),
 })
 
 module.exports = { shifts_schema, schedule_schema }
