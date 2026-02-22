@@ -9,10 +9,31 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useSchedule } from '../../contexts/ScheduleContext';
 import { generateTemplate, publishSchedule } from '../../services/api';
 
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+function generateTimeSlots(startHour, endHour, slotMinutes) {
+  const slots = [];
+  let hour = startHour;
+  let minute = 0;
+
+  while (hour < endHour || (hour === endHour && minute === 0)) {
+    if (hour === 24) break;
+    const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    slots.push(timeStr);
+    minute += slotMinutes;
+    if (minute >= 60) {
+      hour += Math.floor(minute / 60);
+      minute = minute % 60;
+    }
+  }
+
+  return slots;
+}
+
 export default function ScheduleConfig() {
   const navigate = useNavigate();
   const { name: authName } = useAuth();
-  const { config, updateConfig, templateSlots, setTemplateSlot } = useSchedule();
+  const { config, updateConfig, templateSlots, setTemplateSlot, clearTemplate } = useSchedule();
 
   const [fullName, setFullName] = useState(authName || '');
   const [editMode, setEditMode] = useState('Office Hours');
@@ -20,18 +41,25 @@ export default function ScheduleConfig() {
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState('');
   const SLOT_DURATION_OPTIONS = [30, 45, 60, 75, 90];
+  const slotMinutes = config.slotDuration || 90;
+  const startHour = config.earliestStart ? parseInt(config.earliestStart) : 9;
+  const endHour = config.latestEnd === '00:00' ? 24 : parseInt(config.latestEnd || '24');
 
 
   const handleCellClick = (day, time) => {
     const key = `${day}-${time}`;
     const current = templateSlots[key];
-    const slotType = editMode === 'Office Hours' ? 'oh' : 'lab';
 
-    if (current === slotType) {
-      setTemplateSlot(day, time, null);
+    let nextState = 'oh';
+    if (!current) {
+      nextState = 'oh';
+    } else if (current === 'oh') {
+      nextState = 'lab';
     } else {
-      setTemplateSlot(day, time, slotType);
+      nextState = null;
     }
+
+    setTemplateSlot(day, time, nextState);
   };
 
   const handlePublish = async () => {
@@ -47,8 +75,18 @@ export default function ScheduleConfig() {
     }
   };
 
-  const startHour = config.earliestStart ? parseInt(config.earliestStart) : 9;
-  const endHour = config.latestEnd === '00:00' ? 24 : parseInt(config.latestEnd || '24');
+  const handlePopulateAll = () => {
+    const times = generateTimeSlots(startHour, endHour, slotMinutes);
+    DAYS.forEach((day) => {
+      times.forEach((time) => {
+        setTemplateSlot(day, time, 'oh');
+      });
+    });
+  };
+
+  const handleClearCalendar = () => {
+    clearTemplate();
+  };
 
   const sidebar = (
     <>
@@ -65,13 +103,13 @@ export default function ScheduleConfig() {
 
       <div>
         <label className="block text-lg font-medium text-gray-700 mb-1">
-          utlns of other approved TFs
+          UTLNs of other approved TFs
         </label>
         <p className="text-sm text-gray-500 mb-1 italic">(separated with enter)</p>
         <ChipInput
           value={config.approvedTFs}
           onChange={(tfs) => updateConfig({ approvedTFs: tfs })}
-          placeholder="Enter utln"
+          placeholder="Enter a utln, then hit enter"
         />
       </div>
 
@@ -155,15 +193,18 @@ export default function ScheduleConfig() {
           onCellClick={handleCellClick}
           startHour={startHour}
           endHour={endHour}
-          slotMinutes={config.slotDuration || 30}
+          slotMinutes={slotMinutes}
         />
-        <div className="mt-4 flex justify-end">
-          <Button
-            variant="primary"
-            className="text-lg"
-            onClick={handlePublish}
-            loading={publishing}
-          >
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <div className="flex gap-3">
+            <Button variant="primary" className="text-lg" onClick={handlePopulateAll}>
+              Populate All
+            </Button>
+            <Button variant="primary" className="text-lg" onClick={handleClearCalendar}>
+              Clear Calendar
+            </Button>
+          </div>
+          <Button variant="primary" className="text-lg" onClick={handlePublish} loading={publishing}>
             Publish
           </Button>
         </div>
