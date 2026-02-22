@@ -6,6 +6,7 @@ const express = require('express');
 const router = express.Router();
 const mongodbPromise = require('../utils/mongo');
 const { ta_schema } = require('../schemas/ta');
+const { preferences } = require('joi');
 
 /* * POST /create :
  *      summary: creates a new TA in the 'ta-scheduler' database 'ta' collection 
@@ -61,7 +62,9 @@ router.post('/create', async (req, res) => {
                 first_name,
                 last_name,
                 is_tf,
-                lab_perm
+                lab_perm,
+                preferences: [],
+                confirmed_shifts: []
             };
     
             const document = await collection.insertOne(newEntry);
