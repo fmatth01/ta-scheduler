@@ -34,19 +34,6 @@ export default function ScheduleConfig() {
     }
   };
 
-  const handleGenerate = async () => {
-    setGenerating(true);
-    setError('');
-    try {
-      await generateTemplate(config);
-      // TODO: Backend returns generated template slots - apply to context
-    } catch {
-      setError('Failed to generate template.');
-    } finally {
-      setGenerating(false);
-    }
-  };
-
   const handlePublish = async () => {
     setPublishing(true);
     setError('');
@@ -142,17 +129,6 @@ export default function ScheduleConfig() {
       </div>
 
       {error && <p className="text-red-500 text-xs">{error}</p>}
-
-      <div className="mt-auto pt-4">
-        <Button
-          variant="primary"
-          className="w-full py-4 text-lg"
-          onClick={handleGenerate}
-          loading={generating}
-        >
-          Generate Template
-        </Button>
-      </div>
     </>
   );
 

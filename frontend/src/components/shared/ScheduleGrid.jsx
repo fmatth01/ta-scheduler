@@ -101,7 +101,7 @@ export default function ScheduleGrid({
 
   return (
     <div className="relative select-none" onMouseUp={handleMouseUp} onMouseLeave={() => { isDragging.current = false; }}>
-      <div className="overflow-auto max-h-[calc(100vh-200px)] border border-gray-200 rounded-lg">
+      <div className="overflow-auto h-[70vh] border border-gray-200 rounded-lg">
         <table className="w-full border-collapse h-[70vh]">
           <thead className="sticky top-0 z-10">
             <tr className="bg-gray-50">
@@ -118,7 +118,7 @@ export default function ScheduleGrid({
           <tbody>
             {timeSlots.map((time, rowIdx) => (
               <tr key={time}>
-                <td className="p-1 text-xs text-gray-500 border-r border-b border-gray-200 text-right pr-2 bg-gray-50 whitespace-nowrap">
+                <td className="p-1 content-baseline text-xs text-gray-500 border-r border-b border-gray-200 text-right pr-2 bg-gray-50 whitespace-nowrap">
                   {formatTime(time)}
                 </td>
                 {DAYS.map((day) => {
