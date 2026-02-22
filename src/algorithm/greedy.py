@@ -56,13 +56,29 @@ def greedy_assign(ctx):
                 f"Could only fill {len(selected)}/{num_needed} {role} slots"
             )
 
-    sorted_shifts = sorted(ctx.shift_metadata, key=lambda s: not s["is_lab"])
+    lab_shifts = sorted(
+        [s for s in ctx.shift_metadata if s["is_lab"]],
+        key=lambda s: sum(
+            1 for ta in ctx.ta_metadata
+            if ta["lab_admin_status"] >= 3
+            and get_pref(ctx, ta["ta_id"], s["shift_id"]) > 0
+        )
+    )
+    oh_shifts = sorted(
+        [s for s in ctx.shift_metadata if not s["is_lab"]],
+        key=lambda s: (s["day"].value, s["start"])
+    )
 
-    for shift in sorted_shifts:
-        if shift["is_lab"]:
-            fill_role(shift, "lead",   shift["staffing"][2])
-            fill_role(shift, "lab_ta", shift["staffing"][1])
-        else:
-            fill_role(shift, "oh_ta",  shift["staffing"][0])
+    # Pass 1 — all leads across all labs
+    for shift in lab_shifts:
+        fill_role(shift, "lead", shift["staffing"][2])
+
+    # Pass 2 — all lab TAs across all labs
+    for shift in lab_shifts:
+        fill_role(shift, "lab_ta", shift["staffing"][1])
+
+    # Pass 3 — all OH shifts
+    for shift in oh_shifts:
+        fill_role(shift, "oh_ta", shift["staffing"][0])
 
     return schedule, current_assignments, hours_assigned
