@@ -56,6 +56,15 @@ router.post('/create', async (req, res) => {
             return res.status(400).send(error.details[0].message);
         } else {
             const { ta_id, first_name, last_name, is_tf, lab_perm } = req.body;
+
+            const existingTa = await collection.findOne({ ta_id });
+            if (existingTa) {
+                return res.status(200).send({
+                    message: 'TA already exists',
+                    _id: existingTa._id,
+                    existed: true
+                });
+            }
     
             const newEntry = {
                 ta_id,
@@ -71,7 +80,8 @@ router.post('/create', async (req, res) => {
     
             return res.status(200).send({
                 message : 'Document successfully created',
-                _id: document.insertedId
+                _id: document.insertedId,
+                existed: false
             });
         }
     } catch (error) {
@@ -79,6 +89,36 @@ router.post('/create', async (req, res) => {
         if (res.headersSent) return;
         return res.status(500).send({
             'message': 'Error connecting to MongoDB: ',
+            error
+        });
+    }
+});
+
+router.get('/exists', async (req, res) => {
+    try {
+        const ta_id = String(req.query.ta_id || '').trim();
+        if (!ta_id) {
+            return res.status(400).send('Param sent is invalid');
+        }
+
+        const client = await mongodbPromise;
+        const db = client.db('ta-scheduler');
+        const collection = db.collection('ta');
+
+        const ta = await collection.findOne(
+            { ta_id },
+            { projection: { _id: 0, ta_id: 1, first_name: 1, last_name: 1, is_tf: 1 } }
+        );
+
+        return res.status(200).json({
+            exists: Boolean(ta),
+            ta: ta || null
+        });
+    } catch (error) {
+        console.log(error);
+        if (res.headersSent) return;
+        return res.status(500).send({
+            message: 'Error connecting to MongoDB: ',
             error
         });
     }

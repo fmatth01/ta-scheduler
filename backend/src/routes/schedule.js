@@ -57,6 +57,33 @@ router.get('/getSchedule', async (req, res) => {
     }
 });
 
+router.get('/getLatestScheduleId', async (req, res) => {
+    try {
+        const client = await mongodbPromise;
+        const db = client.db('ta-scheduler');
+        const collection = db.collection('schedule');
+
+        const latest = await collection
+            .find({}, { projection: { _id: 0, schedule_id: 1 } })
+            .sort({ schedule_id: -1 })
+            .limit(1)
+            .next();
+
+        if (!latest || !Number.isInteger(latest.schedule_id)) {
+            return res.status(404).send('No schedules found');
+        }
+
+        return res.status(200).json({ schedule_id: latest.schedule_id });
+    } catch (error) {
+        console.log(error);
+        if (res.headersSent) return;
+        return res.status(500).send({
+            message: 'Error connecting to MongoDB: ',
+            error
+        });
+    }
+});
+
 router.post('/initSchedule', async (req, res) => {
     // expecting time data from frontend to be formatted "HH:MM"
     console.log(req.body)
