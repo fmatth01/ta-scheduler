@@ -33,19 +33,34 @@ function getCellColor(mode, cellValue) {
 
   switch (mode) {
     case 'builder':
-      return cellValue === 'preferred' ? 'bg-preferred/70' : 'bg-general/70';
+      return cellValue === 'preferred' ? 'bg-shift-green/70' : 'bg-shift-yellow/70';
     case 'ta-viewer':
-      if (cellValue === 'my-oh') return 'bg-oh-shift/70';
-      if (cellValue === 'my-lab') return 'bg-lab-shift/70';
-      if (cellValue === 'other') return 'bg-other-shift/50';
+      if (cellValue === 'my-oh') return 'bg-shift-pink';
+      if (cellValue === 'my-lab') return 'bg-shift-yellow';
+      if (cellValue === 'other') return 'bg-shift-blue';
       return '';
     case 'tf-config':
-      return cellValue === 'oh' ? 'bg-oh-shift/70' : 'bg-lab-shift/70';
+      return cellValue === 'oh' ? 'bg-shift-blue' : 'bg-shift-yellow';
     case 'tf-viewer':
-      return cellValue === 'oh' ? 'bg-oh-shift/50' : 'bg-lab-shift/50';
+      return cellValue === 'oh' ? 'bg-shift-blue' : 'bg-shift-yellow';
     default:
       return '';
   }
+}
+
+function getHoverColorClass(mode, cellValue, isEditable) {
+  if (!isEditable) return '';
+  if (!cellValue) return 'hover:bg-gray-100';
+
+  if (mode === 'tf-config') {
+    return cellValue === 'oh' ? 'hover:bg-shift-blue' : 'hover:bg-shift-yellow';
+  }
+
+  if (mode === 'builder') {
+    return cellValue === 'preferred' ? 'hover:bg-shift-green' : 'hover:bg-shift-yellow';
+  }
+
+  return 'hover:bg-gray-100';
 }
 
 export default function ScheduleGrid({
@@ -101,15 +116,15 @@ export default function ScheduleGrid({
 
   return (
     <div className="relative select-none" onMouseUp={handleMouseUp} onMouseLeave={() => { isDragging.current = false; }}>
-      <div className="overflow-auto max-h-[calc(100vh-200px)] border border-gray-200 rounded-lg">
+      <div className="overflow-auto h-[70vh] border border-gray-200 rounded-lg">
         <table className="w-full border-collapse h-[70vh]">
           <thead className="sticky top-0 z-10">
             <tr className="bg-gray-50">
-              <th className="w-20 p-2 text-xs font-medium text-gray-500 border-b border-r border-gray-200 bg-gray-50">
+              <th className="w-20 p-2 text-md font-medium text-gray-500 border-b border-r border-gray-200 bg-gray-50">
                 Time
               </th>
               {DAYS.map((day) => (
-                <th key={day} className="p-2 text-xs font-medium text-gray-700 border-b border-r border-gray-200 bg-gray-50 min-w-[100px]">
+                <th key={day} className="p-2 text-md font-medium text-gray-700 border-b border-r border-gray-200 bg-gray-50 min-w-[100px]">
                   {day}
                 </th>
               ))}
@@ -118,13 +133,14 @@ export default function ScheduleGrid({
           <tbody>
             {timeSlots.map((time, rowIdx) => (
               <tr key={time}>
-                <td className="p-1 text-xs text-gray-500 border-r border-b border-gray-200 text-right pr-2 bg-gray-50 whitespace-nowrap">
+                <td className="p-1 content-baseline text-md text-gray-500 border-r border-b border-gray-200 text-right pr-2 bg-gray-50 whitespace-nowrap">
                   {formatTime(time)}
                 </td>
                 {DAYS.map((day) => {
                   const key = `${day}-${time}`;
                   const cellValue = data[key];
                   const colorClass = getCellColor(mode, cellValue);
+                  const hoverClass = getHoverColorClass(mode, cellValue, isEditable);
 
                   return (
                     <td
@@ -132,7 +148,8 @@ export default function ScheduleGrid({
                       className={`
                         border-r border-b border-gray-200 h-6 transition-colors
                         ${colorClass}
-                        ${isEditable ? 'cursor-pointer hover:bg-gray-100' : ''}
+                        ${hoverClass}
+                        ${isEditable ? 'cursor-pointer' : ''}
                         ${!isEditable && cellValue ? 'cursor-default' : ''}
                       `}
                       onMouseDown={() => handleMouseDown(day, time)}

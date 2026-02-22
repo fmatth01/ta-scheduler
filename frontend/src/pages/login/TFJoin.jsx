@@ -80,7 +80,7 @@ export default function TFJoin() {
 
         <div className="mt-auto">
           <p className="mb-6 text-lg text-gray-400">
-            Learn more about ISpyScheduling ↗
+            <Link to="https://github.com/fmatth01/ta-scheduler/">Learn more about ISpyScheduling ↗</Link>
           </p>
         </div>
       </div>

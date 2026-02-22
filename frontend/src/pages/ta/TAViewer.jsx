@@ -1,17 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import AppLayout from '../../components/layout/AppLayout';
-import Button from '../../components/shared/Button';
 import ShiftCard from '../../components/shared/ShiftCard';
 import ScheduleGrid from '../../components/shared/ScheduleGrid';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSchedule } from '../../contexts/ScheduleContext';
-import { getTASchedule, copyScheduleAsText } from '../../services/api';
+import { getTASchedule } from '../../services/api';
 
 export default function TAViewer() {
   const { utln } = useAuth();
   const { schedule, setSchedule } = useSchedule();
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
+  const [filters, setFilters] = useState({
+    myOh: true,
+    myLab: true,
+    other: true,
+  });
 
   useEffect(() => {
     async function fetchSchedule() {
@@ -29,49 +32,48 @@ export default function TAViewer() {
     fetchSchedule();
   }, [utln, setSchedule]);
 
-  // Derive grid data and shift cards from schedule
-  const gridData = {};
-  const tooltipData = {};
-  const ohShifts = [];
-  const labShifts = [];
+  const { gridData, tooltipData, ohShifts, labShifts } = useMemo(() => {
+    const grid = {};
+    const tooltip = {};
+    const oh = [];
+    const lab = [];
 
-  schedule.forEach((shift) => {
-    const card = {
-      date: shift.date || '',
-      day: shift.day || '',
-      startTime: shift.startTime || '',
-      endTime: shift.endTime || '',
-      type: shift.type,
-      assignedTAs: shift.assignedTAs?.map((ta) => ta.name) || [],
-    };
+    schedule.forEach((shift) => {
+      const card = {
+        date: shift.date || '',
+        day: shift.day || '',
+        startTime: shift.startTime || '',
+        endTime: shift.endTime || '',
+        type: shift.type,
+        assignedTAs: shift.assignedTAs?.map((ta) => ta.name) || [],
+      };
 
-    const isMyShift = shift.assignedTAs?.some((ta) => ta.utln === utln);
+      const isMyShift = shift.assignedTAs?.some((ta) => ta.utln === utln);
 
-    if (shift.type === 'oh') {
-      if (isMyShift) ohShifts.push(card);
-    } else {
-      if (isMyShift) labShifts.push(card);
-    }
+      if (shift.type === 'oh') {
+        if (isMyShift) oh.push(card);
+      } else if (isMyShift) {
+        lab.push(card);
+      }
 
-    // TODO: Populate gridData and tooltipData from shift time ranges
-  });
+      const key = `${shift.day || ''}-${shift.startTime || ''}`;
+      grid[key] = shift.type === 'oh' ? (isMyShift ? 'my-oh' : 'other') : (isMyShift ? 'my-lab' : 'other');
+      tooltip[key] = shift.assignedTAs?.map((ta) => ta.name) || [];
+    });
 
-  const handleCopy = async () => {
-    try {
-      await copyScheduleAsText(schedule);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard may fail
-    }
+    return { gridData: grid, tooltipData: tooltip, ohShifts: oh, labShifts: lab };
+  }, [schedule, utln]);
+
+  const toggleFilter = (key) => {
+    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const sidebar = (
     <>
       <div>
-        <h2 className="text-sm font-bold text-gray-900 mb-3">My Upcoming OH Shifts</h2>
+        <h2 className="text-md font-bold text-gray-900 mb-3">My Upcoming OH Shifts</h2>
         {ohShifts.length === 0 ? (
-          <p className="text-xs text-gray-500 italic">No upcoming OH shifts</p>
+          <p className="text-sm text-gray-500 italic">No upcoming OH shifts</p>
         ) : (
           <div className="flex flex-col gap-2">
             {ohShifts.map((shift, i) => (
@@ -82,9 +84,9 @@ export default function TAViewer() {
       </div>
 
       <div className="mt-4">
-        <h2 className="text-sm font-bold text-gray-900 mb-3">My Upcoming Lab Shifts</h2>
+        <h2 className="text-md font-bold text-gray-900 mb-3">My Upcoming Lab Shifts</h2>
         {labShifts.length === 0 ? (
-          <p className="text-xs text-gray-500 italic">No upcoming lab shifts</p>
+          <p className="text-sm text-gray-500 italic">No upcoming lab shifts</p>
         ) : (
           <div className="flex flex-col gap-2">
             {labShifts.map((shift, i) => (
@@ -99,25 +101,33 @@ export default function TAViewer() {
   return (
     <AppLayout sidebar={sidebar}>
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          TA Schedule
+        <h1 className="text-2xl font-bold text-gray-900 mt-3 mb-7">
+          My TA Schedule
         </h1>
 
         {/* Legend */}
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-oh-shift" />
-            <span className="text-xs text-gray-600">My OH Shifts</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-lab-shift" />
-            <span className="text-xs text-gray-600">My Lab Shifts</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-other-shift" />
-            <span className="text-xs text-gray-600">Other Shifts</span>
-          </div>
+        <div className="flex items-center gap-7 mb-2">
+          {[
+            { key: 'myOh', label: 'My OH Shifts', color: 'bg-shift-pink' },
+            { key: 'myLab', label: 'My Lab Shifts', color: 'bg-shift-yellow' },
+            { key: 'other', label: 'Other Shifts', color: 'bg-shift-blue' },
+          ].map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => toggleFilter(item.key)}
+              className={`flex items-center gap-1.5 transition ${
+                filters[item.key] ? 'text-gray-600' : 'text-gray-400 opacity-60'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded ${filters[item.key] ? item.color : 'bg-gray-300'}`} />
+              <span className="text-lg">{item.label}</span>
+            </button>
+          ))}
         </div>
+        <p className="text-md text-gray-500 italic mb-2 mt-2">
+          Click on a label above to toggle visibility on the calendar
+        </p>
 
         {loading ? (
           <div className="flex justify-center py-16">
@@ -131,14 +141,11 @@ export default function TAViewer() {
             mode="ta-viewer"
             data={gridData}
             tooltipData={tooltipData}
+            startHour={9}
+            endHour={24}
+            slotMinutes={90}
           />
         )}
-
-        <div className="mt-4">
-          <Button variant="secondary" onClick={handleCopy}>
-            {copied ? 'Copied!' : 'Copy as Text'}
-          </Button>
-        </div>
       </div>
     </AppLayout>
   );

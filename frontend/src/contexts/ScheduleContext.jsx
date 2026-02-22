@@ -8,7 +8,7 @@ const initialState = {
   config: {
     earliestStart: '09:00',
     latestEnd: '00:00',
-    slotDuration: 30,
+    slotDuration: 90,
     tasPerShift: 1,
     approvedTFs: [],
   },
