@@ -48,6 +48,17 @@ function getCellColor(mode, cellValue) {
   }
 }
 
+function getHoverColorClass(mode, cellValue, isEditable) {
+  if (!isEditable) return '';
+  if (!cellValue) return 'hover:bg-gray-100';
+
+  if (mode === 'tf-config') {
+    return cellValue === 'oh' ? 'hover:bg-oh-shift' : 'hover:bg-lab-shift';
+  }
+
+  return 'hover:bg-gray-100';
+}
+
 export default function ScheduleGrid({
   mode = 'builder',
   data = {},
@@ -125,6 +136,7 @@ export default function ScheduleGrid({
                   const key = `${day}-${time}`;
                   const cellValue = data[key];
                   const colorClass = getCellColor(mode, cellValue);
+                  const hoverClass = getHoverColorClass(mode, cellValue, isEditable);
 
                   return (
                     <td
@@ -132,7 +144,8 @@ export default function ScheduleGrid({
                       className={`
                         border-r border-b border-gray-200 h-6 transition-colors
                         ${colorClass}
-                        ${isEditable ? 'cursor-pointer hover:bg-gray-100' : ''}
+                        ${hoverClass}
+                        ${isEditable ? 'cursor-pointer' : ''}
                         ${!isEditable && cellValue ? 'cursor-default' : ''}
                       `}
                       onMouseDown={() => handleMouseDown(day, time)}
