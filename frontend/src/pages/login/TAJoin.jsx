@@ -5,6 +5,8 @@ import Button from '../../components/shared/Button';
 import EmojiCodeInput from '../../components/shared/EmojiCodeInput';
 import { useAuth } from '../../contexts/AuthContext';
 import { loginTA } from '../../services/api';
+import { Link } from "react-router";
+
 
 export default function TAJoin() {
   const navigate = useNavigate();
@@ -39,7 +41,7 @@ export default function TAJoin() {
 
   return (
     <LoginLayout>
-      <div className="max-w-sm w-full text-center">
+      <div className="w-full text-center flex flex-col h-full justify-between">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Get started with scheduling
         </h1>
@@ -76,7 +78,7 @@ export default function TAJoin() {
         </Button>
 
         <p className="mt-8 text-sm text-gray-400">
-          Learn more about ISpyScheduling ↗
+          <Link to="https://github.com/fmatth01/ta-scheduler/">Learn more about ISpyScheduling ↗</Link>
         </p>
       </div>
     </LoginLayout>

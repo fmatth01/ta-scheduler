@@ -7,11 +7,13 @@ export default function LoginLayout({ children }) {
       <div className="w-[40%] bg-mint relative flex flex-col items-center justify-end overflow-hidden">
         <Logo className="absolute top-10 left-10" />
         
-        <DotLottieReact
-          src="https://lottie.host/1fd7514c-8d60-4e55-b0f7-691efcdb08cf/GLO8UH8RBj.lottie"
-          loop
-          autoplay
-        />
+        <div className="w-140 h-140 flex items-center justify-center">
+          <DotLottieReact
+            src="https://lottie.host/1fd7514c-8d60-4e55-b0f7-691efcdb08cf/GLO8UH8RBj.lottie"
+            loop
+            autoplay
+          />
+        </div>
       </div>
 
       <div className="w-[60%] bg-white flex flex-col items-center justify-center px-16">

@@ -85,7 +85,7 @@ export default function TFJoin() {
         </Button>
 
         <p className="mt-8 text-sm text-gray-400">
-          Learn more about ISpyScheduling ↗
+          <Link to="https://github.com/fmatth01/ta-scheduler/">Learn more about ISpyScheduling ↗</Link>
         </p>
       </div>
     </LoginLayout>

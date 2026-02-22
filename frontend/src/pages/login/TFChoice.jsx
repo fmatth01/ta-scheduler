@@ -1,46 +1,43 @@
 import { useNavigate } from 'react-router-dom';
 import LoginLayout from '../../components/layout/LoginLayout';
 import Button from '../../components/shared/Button';
+import { Link } from "react-router";
+
 
 export default function TFChoice() {
   const navigate = useNavigate();
 
   return (
     <LoginLayout>
-      <div className="max-w-sm w-full text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Get started with scheduling
-        </h1>
-        <p className="text-gray-500 mb-6">
-          Select your role below to get started
-        </p>
+      <div className="w-full text-center flex flex-col h-full justify-between">
+        <div className="mt-60">
+          <h1 className="text-5xl font-bold text-gray-900 mb-17">
+            Get started with scheduling
+          </h1>
 
-        <div className="mb-8">
-          <Button variant="primary" className="w-64 py-3 cursor-default" disabled>
-            ★ Teaching Fellow (TF)
-          </Button>
+          <div className="flex flex-col gap-3 w-[384px] justify-self-center">
+            <Button
+              variant="primary"
+              className="w-full py-4 text-xl"
+              onClick={() => navigate('/login/tf/generate')}
+            >
+              Create new class
+            </Button>
+            <Button
+              variant="primary"
+              className="w-full py-4 text-xl"
+              onClick={() => navigate('/login/tf/join')}
+            >
+              Enter class code
+            </Button>
+          </div>
         </div>
-
-        <div className="flex flex-col gap-3">
-          <Button
-            variant="secondary"
-            className="w-full py-3"
-            onClick={() => navigate('/login/tf/generate')}
-          >
-            Create new class
-          </Button>
-          <Button
-            variant="secondary"
-            className="w-full py-3"
-            onClick={() => navigate('/login/tf/join')}
-          >
-            Enter class code
-          </Button>
+        
+        <div className="mt-auto">
+          <p className="mb-6 text-lg text-gray-400">
+            <Link to="https://github.com/fmatth01/ta-scheduler/">Learn more about ISpyScheduling ↗</Link>
+          </p>
         </div>
-
-        <p className="mt-12 text-sm text-gray-400">
-          Learn more about ISpyScheduling ↗
-        </p>
       </div>
     </LoginLayout>
   );

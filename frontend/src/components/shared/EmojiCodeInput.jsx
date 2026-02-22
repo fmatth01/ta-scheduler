@@ -107,7 +107,7 @@ export default function EmojiCodeInput({ value = [], onChange, disabled = false 
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => handleSlotFocus(i)}
             className={`
-              relative w-12 h-12 rounded-lg border-2 flex items-center justify-center text-2xl
+              relative w-18 h-18 rounded-lg border-2 flex items-center justify-center text-4xl
               transition-colors cursor-text
               ${value[i]
                 ? 'border-gray-300 bg-white hover:border-gray-400'
