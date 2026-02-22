@@ -196,12 +196,11 @@ router.get('/importDataToAlg', async (req, res) => {
         const all_tas = await ta_collection.find({}).toArray();
         const last_schedule = await schedule_collection.find().sort({ _id: -1 }).limit(1).next();
 
-        const {start_interval_time, end_interval_time, shift_duration} = last_schedule;
+        const {start_interval_time, end_interval_time, shift_duration, schedule_id} = last_schedule;
 
         console.log(all_tas)
 
         for (const ta of all_tas) {
-            console.log(ta)
             const id = ta.ta_id
             
             const body = {
@@ -210,14 +209,24 @@ router.get('/importDataToAlg', async (req, res) => {
                 end_interval: end_interval_time,
                 shift_duration
             }
-
-            console.log(body)
             
             await apiCall('/ta/getShiftFromPreferences', 'post', body, null );
+            
         }
 
+        const tas = await ta_collection.find({}).toArray();
+
+        const schedule = await schedule_collection.findOne({ schedule_id: schedule_id });
+
+        res.status(200).json({tas, schedule})
+
     } catch (error) {
-        
+         console.log(error);
+        if (res.headersSent) return;
+        return res.status(500).send({
+            'message': 'Error connecting to MongoDB: ',
+            error
+        });
     }
 });
 
