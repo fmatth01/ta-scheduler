@@ -5,7 +5,8 @@
 const express = require('express');
 const router = express.Router();
 const mongodbPromise = require('../utils/mongo');
-const { ta_schema , preference_schema } = require('../schemas/ta');
+const { ta_schema, preference_schema } = require('../schemas/ta');
+const { countShifts, getShiftTimes } = require('../utils/general');
 
 /* * POST /create :
  *      summary: creates a new TA in the 'ta-scheduler' database 'ta' collection 
@@ -189,6 +190,74 @@ router.post('/preferences', async (req, res) => {
     }
 })
 
+
+router.post('/getShiftFromPreferences', async (req, res) => {
+    try {
+        const { ta_id, start_interval, end_interval, shift_duration } = req.body;
+
+        if (!ta_id) {
+            return res.status(400).send("Invalid ta_id provided");
+        }
+
+        const client = await mongodbPromise;
+        const db = client.db('ta-scheduler');
+        const collection = db.collection('ta');
+
+        const TA = await collection.findOne({ ta_id: ta_id });
+
+        if (!TA) {
+            return res.status(404).send("TA not found");
+        }
+
+        const num_shifts = countShifts(start_interval, end_interval, shift_duration);
+        const shift_times = getShiftTimes(start_interval, end_interval, shift_duration);
+
+        const shift_blocks = {};
+        for (let i = 0; i < num_shifts; i++) {
+            shift_blocks[i + 1] = shift_times[i];
+        }
+
+        const padTime = (t) => t.length === 4 ? "0" + t : t;
+
+        const data = TA.preferences.map((pref) => {
+            const colonIndex = pref.time_slots.indexOf(":");
+            const day = pref.time_slots.slice(0, colonIndex);
+            const timeRange = pref.time_slots.slice(colonIndex + 1);
+
+            const [rawStart, rawEnd] = timeRange.split("-");
+            const start_time = padTime(rawStart);
+            const end_time = padTime(rawEnd);
+
+            const block = Object.keys(shift_blocks).find(key =>
+                shift_blocks[key].start_time === start_time &&
+                shift_blocks[key].end_time === end_time
+            );
+
+            if (!block) return null;
+
+            return {
+                ...pref,
+                shift_id: `${day}${block}`,
+            };
+        }).filter(Boolean);
+
+        
+        result = await collection.updateOne(
+            { ta_id: ta_id },
+            { $set: { preferences: data } }
+        );
+
+
+        res.status(200).send(result);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            'message': 'Error in getShiftFromPreferences: ',
+            error
+        });
+    }
+});
 
 
 

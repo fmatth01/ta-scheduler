@@ -18,6 +18,9 @@ const shifts_schema = Joi.object({
 
 const schedule_schema = Joi.object({
     schedule_id: Joi.number().required(),
+    start_interval_time: Joi.string().required(),
+    end_interval_time: Joi.string().required(),
+    shift_duration: Joi.number().required(),
     monday: Joi.array().items(shifts_schema),
     tuesday: Joi.array().items(shifts_schema),
     wednesday: Joi.array().items(shifts_schema),

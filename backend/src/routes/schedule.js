@@ -6,7 +6,7 @@ const express = require('express');
 const router = express.Router();
 const mongodbPromise = require('../utils/mongo');
 const { schedule_schema } = require('../schemas/schedule')
-const { apiCall } = require('../utils/general')
+const { apiCall, countShifts, getNextScheduleId, getShiftTimes } = require('../utils/general')
 
 /* * GET /getSchedule :
  *      summary: grabs a schedule from 'ta-scheduler' DB's 'schedule' collection 
@@ -120,7 +120,10 @@ router.post('/initSchedule', async (req, res) => {
 
         const entry = {
             ...schedule,
-            schedule_id
+            schedule_id,
+            start_interval_time, 
+            end_interval_time,
+            shift_duration
         }   
         
         await collection.insertOne(entry);
@@ -182,79 +185,43 @@ router.put('/update', async (req, res) => {
     }
 });
 
+router.get('/importDataToAlg', async (req, res) => {
+    try {
+        // Get all TAs from DB
+        const client = await mongodbPromise;
+        const db = client.db('ta-scheduler');
+        const ta_collection = db.collection('ta');
+        const schedule_collection = db.collection('schedule');
 
+        const all_tas = await ta_collection.find({}).toArray();
+        const last_schedule = await schedule_collection.find().sort({ _id: -1 }).limit(1).next();
 
-/* Splits a the time format "HH:MM" to MM */
-function timeToMinutes(hhmm) {
-    const [hh, mm] = hhmm.split(":").map(Number);
+        const {start_interval_time, end_interval_time, shift_duration} = last_schedule;
 
-    if (
-        !Number.isInteger(hh) || !Number.isInteger(mm) ||
-        hh < 0 || hh > 23 || mm < 0 || mm > 59
-    ) {
-        throw new Error(`Invalid time format: ${hhmm}`);
+        console.log(all_tas)
+
+        for (const ta of all_tas) {
+            console.log(ta)
+            const id = ta.ta_id
+            
+            const body = {
+                ta_id: id,
+                start_interval: start_interval_time,
+                end_interval: end_interval_time,
+                shift_duration
+            }
+
+            console.log(body)
+            
+            await apiCall('/ta/getShiftFromPreferences', 'post', body, null );
+        }
+
+    } catch (error) {
+        
     }
+});
 
-    return hh * 60 + mm;
-}
 
-/* Given a start time, end time, and shift duration, function
- * returns the number of shifts that can fit within the interval
- */
-function countShifts(start_time, end_time, shift_duration) {
-    const start = timeToMinutes(start_time);
-    const end = timeToMinutes(end_time);
 
-    if (!Number.isInteger(shift_duration) || shift_duration <= 0) {
-        throw new Error("shift_duration must be a positive integer");
-    }
-
-    if (end <= start) {
-        return 0;
-    }
-
-    return Math.floor((end - start) / shift_duration);
-}
-
-/* minutes -> "HH:MM" */
-function minutesToTime(mins) {
-  const hh = Math.floor(mins / 60);
-  const mm = mins % 60;
-  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
-}
-
-/*
- * Given start/end interval and shift duration,
- * returns an array of { start_time, end_time }
- */
-function getShiftTimes(start_time, end_time, shift_duration) {
-  const startMinutes = timeToMinutes(start_time);
-  const endMinutes = timeToMinutes(end_time);
-
-  const numShifts = Math.floor((endMinutes - startMinutes) / shift_duration);
-  const shifts = [];
-
-  for (let i = 0; i < numShifts; i++) {
-    const shiftStart = startMinutes + i * shift_duration;
-    const shiftEnd = shiftStart + shift_duration;
-
-    shifts.push({
-      start_time: minutesToTime(shiftStart),
-      end_time: minutesToTime(shiftEnd),
-    });
-  }
-
-  return shifts;
-}
-
-async function getNextScheduleId(scheduleCollection) {
-  const last = await scheduleCollection
-    .find({}, { projection: { schedule_id: 1 } })
-    .sort({ schedule_id: -1 })
-    .limit(1)
-    .next();
-
-  return (last?.schedule_id ?? 0) + 1;
-}
 
 module.exports = router;
