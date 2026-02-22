@@ -4,13 +4,13 @@ from simulated_annealing import *
 from scoring import *
 from reducer import *
 
-from dummy_data_big import ta_metadata, shift_metadata, preference_matrix
+from dummy_data_buddies import ta_metadata, shift_metadata, preference_matrix
 
 # Build context
 ctx = SchedulerContext(ta_metadata, shift_metadata, preference_matrix)
 
-# Apply fairness floor (mutates ctx.ta_metadata in place)
-apply_fairness_floor(ctx)
+# Apply fairness caps (mutates ctx.ta_metadata in place)
+apply_fairness(ctx)
 
 # Run scheduler
 schedule, hours_assigned, score = simulated_annealing(ctx)

@@ -12,13 +12,26 @@ ROLE_WEIGHTS = {
     "oh_ta":  0.6,
 }
 
-def score_schedule(ctx, schedule):
+EXPERIENCE_PENALTY = -0.1
+COMPANION_BONUS = 0.1
+
+def compute_candidate_score(ctx, ta_id, shift_id, schedule, hours_assigned):
+    ta = get_ta(ctx, ta_id)
+    pref = get_pref(ctx, ta_id, shift_id)
+    hours_below_min = max(0, ta["min_hours"] - hours_assigned[ta_id])
+    balance_boost   = (hours_below_min / ta["min_hours"]) * 2.0 if ta["min_hours"] > 0 else 0
+    exp_penalty     = EXPERIENCE_PENALTY * experience_penalty(ctx, ta_id, shift_id, schedule)
+    comp_boost      = companion_boost(ctx, ta_id, shift_id, schedule)
+    return pref + balance_boost + exp_penalty + comp_boost
+
+def score_schedule(ctx, schedule, hours_assigned):
     total = 0
     for shift_id, assignment in schedule.items():
         for role, role_key in [("lead", "leads"), ("lab_ta", "lab_tas"), ("oh_ta", "oh_tas")]:
             for ta_id in assignment[role_key]:
-                total += ROLE_WEIGHTS[role] * get_pref(ctx, ta_id, shift_id)
-                total += experience_penalty(ctx, ta_id, shift_id, schedule)
+                total += ROLE_WEIGHTS[role] * compute_candidate_score(
+                    ctx, ta_id, shift_id, schedule, hours_assigned
+                )
     return total
 
 # ============================================================
