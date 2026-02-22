@@ -69,9 +69,12 @@ def reduce_schedule(ctx, schedule, hours_assigned, target_budget):
 
     def can_remove(shift_id):
         """
-        A shift can only be removed if no TA assigned to it
-        would drop below their min_hours as a result.
+        A shift can only be removed if:
+        - It is not a lab shift
+        - No TA assigned to it would drop below their min_hours as a result
         """
+        if get_shift(ctx, shift_id)["is_lab"]:
+            return False
         shift    = get_shift(ctx, shift_id)
         duration = shift_duration_hours(shift)
         for ta_id in all_tas_on_shift(shift_id):
@@ -137,7 +140,6 @@ def reduce_schedule(ctx, schedule, hours_assigned, target_budget):
         ))
 
         shift_to_remove = removable[0]
-        shift_name      = get_shift(ctx, shift_to_remove)["name"]
 
         remove_shift(shift_to_remove)
 
