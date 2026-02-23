@@ -47,6 +47,14 @@ def fetch_schedule():
 def fetch_shifts(raw_schedule):
     return parse_shifts(raw_schedule)
 
+# def post_schedule(schedule_id, payload):
+#     response = requests.put(f"{BASE_URL}/schedule/update", json={
+#         "schedule_id": schedule_id,
+#         "schedule": payload
+#     })
+#     response.raise_for_status()
+#     return response.json()
+
 def post_schedule(schedule_id, payload):
     """
     POST the filled schedule back to MongoDB via the backend.
