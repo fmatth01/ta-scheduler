@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer } from 'react';
+import { createContext, useContext, useReducer, useCallback, useMemo } from 'react';
 
 const ScheduleContext = createContext(null);
 
@@ -53,21 +53,35 @@ function scheduleReducer(state, action) {
 export function ScheduleProvider({ children }) {
   const [state, dispatch] = useReducer(scheduleReducer, initialState);
 
-  const value = {
+  // Stable function references — dispatch from useReducer never changes,
+  // so these callbacks are safe with empty dependency arrays.
+  const setAvailability = useCallback((day, time, type) => {
+    const key = `${day}-${time}`;
+    dispatch({ type: 'SET_AVAILABILITY', payload: { key, value: type } });
+  }, []);
+
+  const clearAvailability = useCallback(() => dispatch({ type: 'CLEAR_AVAILABILITY' }), []);
+
+  const setSchedule = useCallback((data) => dispatch({ type: 'SET_SCHEDULE', payload: data }), []);
+
+  const updateConfig = useCallback((partial) => dispatch({ type: 'UPDATE_CONFIG', payload: partial }), []);
+
+  const setTemplateSlot = useCallback((day, time, type) => {
+    const key = `${day}-${time}`;
+    dispatch({ type: 'SET_TEMPLATE_SLOT', payload: { key, value: type } });
+  }, []);
+
+  const clearTemplate = useCallback(() => dispatch({ type: 'CLEAR_TEMPLATE' }), []);
+
+  const value = useMemo(() => ({
     ...state,
-    setAvailability: (day, time, type) => {
-      const key = `${day}-${time}`;
-      dispatch({ type: 'SET_AVAILABILITY', payload: { key, value: type } });
-    },
-    clearAvailability: () => dispatch({ type: 'CLEAR_AVAILABILITY' }),
-    setSchedule: (data) => dispatch({ type: 'SET_SCHEDULE', payload: data }),
-    updateConfig: (partial) => dispatch({ type: 'UPDATE_CONFIG', payload: partial }),
-    setTemplateSlot: (day, time, type) => {
-      const key = `${day}-${time}`;
-      dispatch({ type: 'SET_TEMPLATE_SLOT', payload: { key, value: type } });
-    },
-    clearTemplate: () => dispatch({ type: 'CLEAR_TEMPLATE' }),
-  };
+    setAvailability,
+    clearAvailability,
+    setSchedule,
+    updateConfig,
+    setTemplateSlot,
+    clearTemplate,
+  }), [state, setAvailability, clearAvailability, setSchedule, updateConfig, setTemplateSlot, clearTemplate]);
 
   return <ScheduleContext.Provider value={value}>{children}</ScheduleContext.Provider>;
 }

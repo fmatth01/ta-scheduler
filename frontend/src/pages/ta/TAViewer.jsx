@@ -73,10 +73,18 @@ export default function TAViewer() {
     const tooltip = {};
     const oh = [];
     const lab = [];
+    const slotBuckets = {};
+
+    const isTypeVisible = (cellType) => (
+      (cellType === 'my-oh' && filters.myOh)
+      || (cellType === 'my-lab' && filters.myLab)
+      || ((cellType === 'other-oh' || cellType === 'other-lab') && filters.other)
+    );
 
     schedule.forEach((shift) => {
-      const hasMineByUTLN = userProfile.utln
-        ? shift.assignedTAs?.some((ta) => ta.utln === userProfile.utln)
+      const normalizedUserUTLN = (userProfile.utln || '').trim().toLowerCase();
+      const hasMineByUTLN = normalizedUserUTLN
+        ? shift.assignedTAs?.some((ta) => (ta?.utln || '').trim().toLowerCase() === normalizedUserUTLN)
         : false;
       const isMyShift = Boolean(shift.isMine) || hasMineByUTLN;
       const effectiveAssignedTAs = (isMyShift && (!shift.assignedTAs || shift.assignedTAs.length === 0) && (userProfile.name || userProfile.utln))
@@ -97,15 +105,30 @@ export default function TAViewer() {
       }
 
       const key = `${shift.day || ''}-${shift.startTime || ''}`;
-      const cellType = shift.type === 'oh' ? (isMyShift ? 'my-oh' : 'other') : (isMyShift ? 'my-lab' : 'other');
-      const isVisible = (cellType === 'my-oh' && filters.myOh)
-        || (cellType === 'my-lab' && filters.myLab)
-        || (cellType === 'other' && filters.other);
+      const cellType = isMyShift
+        ? (shift.type === 'oh' ? 'my-oh' : 'my-lab')
+        : (shift.type === 'oh' ? 'other-oh' : 'other-lab');
 
-      if (isVisible) {
-        grid[key] = cellType;
-        tooltip[key] = effectiveAssignedTAs.map(getTALabel).filter(Boolean);
+      if (!slotBuckets[key]) {
+        slotBuckets[key] = {
+          'my-oh': new Set(),
+          'my-lab': new Set(),
+          'other-oh': new Set(),
+          'other-lab': new Set(),
+        };
       }
+      effectiveAssignedTAs
+        .map(getTALabel)
+        .filter(Boolean)
+        .forEach((label) => slotBuckets[key][cellType].add(label));
+    });
+
+    Object.entries(slotBuckets).forEach(([key, bucket]) => {
+      const displayPriority = ['my-oh', 'my-lab', 'other-oh', 'other-lab'];
+      const visibleType = displayPriority.find((type) => bucket[type].size > 0 && isTypeVisible(type));
+      if (!visibleType) return;
+      grid[key] = visibleType;
+      tooltip[key] = Array.from(bucket[visibleType]);
     });
 
     return { gridData: grid, tooltipData: tooltip, ohShifts: oh, labShifts: lab };

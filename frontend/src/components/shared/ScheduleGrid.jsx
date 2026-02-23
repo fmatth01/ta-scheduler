@@ -37,6 +37,8 @@ function getCellColor(mode, cellValue) {
     case 'ta-viewer':
       if (cellValue === 'my-oh') return 'bg-shift-pink';
       if (cellValue === 'my-lab') return 'bg-shift-yellow';
+      if (cellValue === 'other-oh') return 'bg-shift-blue';
+      if (cellValue === 'other-lab') return 'bg-shift-yellow';
       if (cellValue === 'other') return 'bg-shift-blue';
       return '';
     case 'tf-config':
@@ -99,13 +101,12 @@ export default function ScheduleGrid({
 
     if (!isEditable) {
       const key = `${day}-${time}`;
-      const names = tooltipData[key] || [];
       if (data[key]) {
         setHoverCell({ day, time });
         setTooltipPos({ x: e.clientX, y: e.clientY });
       }
     }
-  }, [isEditable, onCellClick, tooltipData, data]);
+  }, [isEditable, onCellClick, data]);
 
   const handleMouseLeave = useCallback(() => {
     setHoverCell(null);
@@ -134,7 +135,7 @@ export default function ScheduleGrid({
             </tr>
           </thead>
           <tbody>
-            {timeSlots.map((time, rowIdx) => (
+            {timeSlots.map((time) => (
               <tr key={time}>
                 <td className="p-1 content-baseline text-md text-gray-500 border-r border-b border-gray-200 text-right pr-2 bg-gray-50 whitespace-nowrap">
                   {formatTime(time)}
