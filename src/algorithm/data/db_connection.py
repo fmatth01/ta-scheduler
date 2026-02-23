@@ -3,7 +3,7 @@ import os
 from data.parsers import *
 
 # Prefer explicit backend URL for the algorithm process.
-# Fallback to VITE_BASE_URL for compatibility, then localhost.
+# Fallback to localhost.
 BASE_URL = os.getenv("VITE_BASE_URL") or "http://localhost:3000"
 
 def fetch_schedule():
