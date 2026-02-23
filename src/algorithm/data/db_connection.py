@@ -1,7 +1,10 @@
 import requests
+import os
 from data.parsers import *
 
-BASE_URL = "http://localhost:3000"
+# Prefer explicit backend URL for the algorithm process.
+# Fallback to VITE_BASE_URL for compatibility, then localhost.
+BASE_URL = os.getenv("VITE_BASE_URL") or "http://localhost:3000"
 
 def fetch_schedule():
     """
