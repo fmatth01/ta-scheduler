@@ -305,6 +305,8 @@ router.post('/getShiftFromPreferences', async (req, res) => {
     try {
         const { ta_id, start_interval, end_interval, shift_duration } = req.body;
 
+        console.log(`[getShiftFromPreferences] Processing TA '${ta_id}' with interval ${start_interval}-${end_interval}, duration=${shift_duration}`);
+
         if (!ta_id) {
             return res.status(400).send("Invalid ta_id provided");
         }
@@ -316,16 +318,23 @@ router.post('/getShiftFromPreferences', async (req, res) => {
         const TA = await collection.findOne({ ta_id: ta_id });
 
         if (!TA) {
+            console.log(`[getShiftFromPreferences] TA '${ta_id}' NOT FOUND in DB`);
             return res.status(404).send("TA not found");
         }
 
+        console.log(`[getShiftFromPreferences] TA '${ta_id}' has ${TA.preferences?.length || 0} raw preferences`);
+
         const num_shifts = countShifts(start_interval, end_interval, shift_duration);
         const shift_times = getShiftTimes(start_interval, end_interval, shift_duration);
+
+        console.log(`[getShiftFromPreferences] ${num_shifts} shift blocks calculated`);
 
         const shift_blocks = {};
         for (let i = 0; i < num_shifts; i++) {
             shift_blocks[i + 1] = shift_times[i];
         }
+
+        console.log(`[getShiftFromPreferences] Shift blocks:`, JSON.stringify(shift_blocks));
 
         const padTime = (t) => t.length === 4 ? "0" + t : t;
 
@@ -343,20 +352,28 @@ router.post('/getShiftFromPreferences', async (req, res) => {
                 shift_blocks[key].end_time === end_time
             );
 
-            if (!block) return null;
+            if (!block) {
+                console.log(`[getShiftFromPreferences] TA '${ta_id}': NO MATCH for pref ${pref.time_slots} (${start_time}-${end_time})`);
+                return null;
+            }
+
+            const shift_id = `${day}${block}`;
+            console.log(`[getShiftFromPreferences] TA '${ta_id}': ${pref.time_slots} -> shift_id='${shift_id}' (pref=${pref.preference})`);
 
             return {
                 ...pref,
-                shift_id: `${day}${block}`,
+                shift_id,
             };
         }).filter(Boolean);
 
-        
-        result = await collection.updateOne(
+        console.log(`[getShiftFromPreferences] TA '${ta_id}': ${data.length} preferences matched to shift_ids`);
+
+        const result = await collection.updateOne(
             { ta_id: ta_id },
             { $set: { preferences: data } }
         );
 
+        console.log(`[getShiftFromPreferences] TA '${ta_id}': DB update matchedCount=${result.matchedCount}, modifiedCount=${result.modifiedCount}`);
 
         res.status(200).send(result);
 

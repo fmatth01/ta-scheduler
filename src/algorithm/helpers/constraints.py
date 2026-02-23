@@ -31,36 +31,56 @@ def would_exceed_max_hours(ctx, ta_id, shift_id, hours_assigned):
 
 def has_min_status_for_role(ctx, ta_id, role):
     """Check if a TA's lab_admin_status meets the minimum required for a role."""
-    min_status = {"oh_ta": 1, "lab_ta": 2, "lead": 3}
+    # DB lab_perm values: 0=OH only, 1=Lab TA, 2=Lab Lead
+    min_status = {"oh_ta": 0, "lab_ta": 1, "lead": 2}
     return get_ta(ctx, ta_id)["lab_admin_status"] >= min_status[role]
 
 # ============================================================
 # COMBINED ELIGIBILITY
 # ============================================================
 
-def get_eligible_tas_for_role(ctx, shift_id, role, current_assignments, hours_assigned):
+def get_eligible_tas_for_role(ctx, shift_id, role, current_assignments, hours_assigned, verbose=False):
     """
     Returns list of ta_ids who are eligible for a given role on a given shift.
     Filters on: availability, role status, max hours, time conflicts, one-lab rule.
     """
     eligible = []
+    reasons = {}  # Track why TAs were filtered out
     for ta in ctx.ta_metadata:
         ta_id = ta["ta_id"]
 
         if not is_available(ctx, ta_id, shift_id):
+            reasons[ta_id] = "unavailable"
             continue
         if is_overloaded(ta_id, hours_assigned):
+            reasons[ta_id] = f"overloaded (hours={hours_assigned[ta_id]:.1f})"
             continue
         if not has_min_status_for_role(ctx, ta_id, role):
+            reasons[ta_id] = f"insufficient status (has={ta['lab_admin_status']}, need {role})"
             continue
         if would_exceed_max_hours(ctx, ta_id, shift_id, hours_assigned):
+            reasons[ta_id] = f"would exceed max_hours ({hours_assigned[ta_id]:.1f}/{get_ta(ctx, ta_id)['max_hours']})"
             continue
         if has_time_conflict(ctx, ta_id, shift_id, current_assignments):
+            reasons[ta_id] = "time conflict"
             continue
         if role in ("lead", "lab_ta") and is_in_any_lab(ctx, ta_id, current_assignments):
+            reasons[ta_id] = "already in a lab"
             continue
 
         eligible.append(ta_id)
+
+    # Log filtering summary (only when few TAs available)
+    if len(eligible) < 3 or verbose:
+        available_count = sum(1 for r in reasons.values() if r != "unavailable")
+        unavailable_count = sum(1 for r in reasons.values() if r == "unavailable")
+        filtered_reasons = {k: v for k, v in reasons.items() if v != "unavailable"}
+        print(f"[ELIGIBILITY] shift='{shift_id}' role='{role}': "
+              f"{len(eligible)} eligible, {unavailable_count} unavailable, "
+              f"{len(filtered_reasons)} filtered for other reasons")
+        if filtered_reasons:
+            for ta_id, reason in filtered_reasons.items():
+                print(f"[ELIGIBILITY]   '{ta_id}' filtered: {reason}")
 
     return eligible
 

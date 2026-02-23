@@ -120,30 +120,34 @@ function parseShiftDocument(rawShift) {
   return rawShift && typeof rawShift === 'object' ? rawShift : null;
 }
 
-function uniqueStrings(values) {
-  return Array.from(new Set((values || []).filter((v) => typeof v === 'string' && v.trim()).map((v) => v.trim())));
-}
-
 function normalizeUTLN(utln) {
   return String(utln || '').trim().toLowerCase();
 }
 
-function extractShiftUTLNs(shift) {
+function extractAssignedTAs(shift) {
   const fromPrimary = Array.isArray(shift?.ta_scheduled) ? shift.ta_scheduled : [];
   const fromAlternate = Array.isArray(shift?.tas_scheduled) ? shift.tas_scheduled : [];
   const raw = [...fromPrimary, ...fromAlternate];
 
-  const utlns = raw.map((item) => {
-    if (typeof item === 'string') return item;
-    if (item && typeof item === 'object') return item.utln || item.ta_id || '';
-    return '';
-  });
+  const seen = new Set();
+  const result = [];
+  for (const item of raw) {
+    let utln = '';
+    let name = '';
+    if (typeof item === 'string') {
+      utln = item.trim();
+      name = utln;
+    } else if (item && typeof item === 'object') {
+      utln = String(item.utln || item.ta_id || '').trim();
+      name = String(item.name || utln).trim();
+    }
 
-  return uniqueStrings(utlns);
-}
-
-function toAssignedTAs(utlns) {
-  return utlns.map((utln) => ({ utln, name: utln }));
+    if (!utln) continue;
+    if (seen.has(utln)) continue;
+    seen.add(utln);
+    result.push({ utln, name: name || utln });
+  }
+  return result;
 }
 
 function mapScheduleDocumentToShifts(scheduleDoc, options = {}) {
@@ -160,13 +164,13 @@ function mapScheduleDocumentToShifts(scheduleDoc, options = {}) {
       const shift = parseShiftDocument(rawShift);
       if (!shift?.start_time || !shift?.end_time) continue;
 
-      const shiftUTLNs = extractShiftUTLNs(shift);
+      const assignedTAs = extractAssignedTAs(shift);
+      const shiftUTLNs = assignedTAs.map((ta) => ta.utln);
       const shiftUTLNsNormalized = shiftUTLNs.map(normalizeUTLN);
       if (normalizedOnlyUTLN && !shiftUTLNsNormalized.includes(normalizedOnlyUTLN)) {
         continue;
       }
 
-      const assignedTAs = toAssignedTAs(shiftUTLNs);
       const baseShift = {
         id: shift.shift_id || `${frontendDay}-${shift.start_time}`,
         day: frontendDay,
@@ -328,7 +332,7 @@ export async function getTASchedule(utln) {
     config: {
       earliestStart: schedule.start_interval_time,
       latestEnd: schedule.end_interval_time,
-      slotDuration: Number(schedule.shift_duration) || 30,
+      slotDuration: Number(schedule.shift_duration) || 90,
     },
   };
 }
@@ -395,9 +399,13 @@ export async function publishSchedule(templateSlots, config, tfUtln, tfFullName)
       if (slotType === 'lab') {
         shift.is_lab = true;
         shift.is_empty = false;
+        // Lab shifts need leads (lab_perm=2) so the algorithm assigns leads + lab_tas
+        shift.staffing_capacity = [2, config.tasPerShift];
       } else if (slotType === 'oh') {
         shift.is_lab = false;
         shift.is_empty = false;
+        // OH shifts use lab_perm=0 so the algorithm assigns oh_tas
+        shift.staffing_capacity = [0, config.tasPerShift];
       } else {
         shift.is_lab = false;
         shift.is_empty = true;
@@ -418,6 +426,11 @@ export async function publishSchedule(templateSlots, config, tfUtln, tfFullName)
 
   storeScheduleId(schedule.schedule_id);
 
+  // Step 6: Run the scheduling algorithm to assign TAs to shifts
+  console.log('[publishSchedule] Running scheduling algorithm...');
+  const algResult = await apiCall('/schedule/runAlgorithm', 'POST', {}, null);
+  console.log('[publishSchedule] Algorithm result:', algResult);
+
   return { success: true, schedule };
 }
 
@@ -430,7 +443,7 @@ export async function getTFSchedule() {
     config: {
       earliestStart: schedule.start_interval_time,
       latestEnd: schedule.end_interval_time,
-      slotDuration: Number(schedule.shift_duration) || 30,
+      slotDuration: Number(schedule.shift_duration) || 90,
     },
   };
 }

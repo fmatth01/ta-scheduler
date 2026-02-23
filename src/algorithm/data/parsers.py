@@ -80,6 +80,9 @@ def parse_shifts(raw_schedule):
     """
     shifts = []
     shift_counter = 1  # generate numeric shift_ids since DB has empty strings
+    skipped_empty = 0
+
+    print(f"\n[PARSER] Parsing shifts from schedule...")
 
     for day_str, day_shifts in raw_schedule.items():
         if day_str not in DAY_MAP:
@@ -88,6 +91,11 @@ def parse_shifts(raw_schedule):
             continue
 
         for shift in day_shifts:
+            # Skip empty shifts (not scheduled for OH or lab)
+            if shift.get("is_empty", False):
+                skipped_empty += 1
+                continue
+
             # Handle both time_slots format and separate start_time/end_time
             if "time_slots" in shift:
                 day, start, end = parse_time_slot(shift["time_slots"])
@@ -99,6 +107,13 @@ def parse_shifts(raw_schedule):
             # Use DB shift_id if populated, otherwise generate one
             shift_id = shift.get("shift_id") or shift_counter
 
+            staffing = parse_staffing(shift["staffing_capacity"])
+
+            print(f"[PARSER]   shift_id='{shift_id}' {day_str} "
+                  f"{start.strftime('%H:%M')}-{end.strftime('%H:%M')} "
+                  f"is_lab={shift['is_lab']} staffing_capacity={shift['staffing_capacity']} "
+                  f"-> staffing_tuple={staffing}")
+
             shifts.append({
                 "shift_id": shift_id,
                 "name":     f"{day_str.capitalize()} {start.strftime('%H:%M')}",
@@ -106,11 +121,12 @@ def parse_shifts(raw_schedule):
                 "start":    start,
                 "end":      end,
                 "is_lab":   shift["is_lab"],
-                "staffing": parse_staffing(shift["staffing_capacity"]),
+                "staffing": staffing,
             })
 
             shift_counter += 1
 
+    print(f"[PARSER] Parsed {len(shifts)} active shifts ({skipped_empty} empty shifts skipped)")
     return shifts
 
 def parse_tas(raw_tas):
@@ -146,20 +162,40 @@ def parse_preference_matrix(raw_tas, shift_metadata):
         for shift in shift_metadata
     }
 
+    print(f"\n[PARSER] Building preference matrix...")
+    print(f"[PARSER] Shift lookup has {len(shift_lookup)} entries")
+    for (day, start), sid in shift_lookup.items():
+        print(f"[PARSER]   ({day}, {start.strftime('%H:%M')}) -> '{sid}'")
+
     matrix = {}
+    total_matched = 0
+    total_unmatched = 0
     for ta in raw_tas:
         ta_id = ta["ta_id"]
         matrix[ta_id] = {}
+        matched = 0
+        unmatched = 0
         for pref in ta.get("preferences", []):
             try:
                 day, start, end = parse_time_slot(pref["time_slots"])
                 shift_id = shift_lookup.get((day, start))
                 if shift_id is not None:
                     matrix[ta_id][shift_id] = pref["preference"]
+                    matched += 1
+                else:
+                    unmatched += 1
+                    print(f"[PARSER]   WARNING: TA '{ta_id}' pref '{pref['time_slots']}' "
+                          f"-> ({day}, {start.strftime('%H:%M')}) has NO matching shift")
             except Exception as e:
-                print(f"Could not parse time slot '{pref['time_slots']}' for TA {ta_id}: {e}")
+                print(f"[PARSER]   ERROR: Could not parse time slot '{pref.get('time_slots', '?')}' for TA {ta_id}: {e}")
                 continue
 
+        nonzero = sum(1 for v in matrix[ta_id].values() if v > 0)
+        print(f"[PARSER]   TA '{ta_id}': {matched} matched, {unmatched} unmatched, {nonzero} available/preferred")
+        total_matched += matched
+        total_unmatched += unmatched
+
+    print(f"[PARSER] Preference matrix complete: {total_matched} matched, {total_unmatched} unmatched across all TAs")
     return matrix
 
 # ============================================================
@@ -181,6 +217,8 @@ def serialize_schedule(ctx, schedule):
     Converts our internal schedule dict into the MongoDB format.
     tas_scheduled is populated with full TA objects looked up from ctx.
     """
+    print(f"\n[SERIALIZER] Serializing schedule for DB write...")
+
     # Build a lookup from ta_id -> full TA object
     ta_lookup = {ta["ta_id"]: ta for ta in ctx.ta_metadata}
 
@@ -194,6 +232,7 @@ def serialize_schedule(ctx, schedule):
         "sunday":    [],
     }
 
+    total_assignments = 0
     for shift in ctx.shift_metadata:
         shift_id   = shift["shift_id"]
         assignment = schedule[shift_id]
@@ -207,6 +246,13 @@ def serialize_schedule(ctx, schedule):
 
         # Swap IDs for full TA objects
         tas_scheduled = [ta_lookup[ta_id] for ta_id in all_ta_ids if ta_id in ta_lookup]
+        total_assignments += len(tas_scheduled)
+
+        if tas_scheduled:
+            ta_names = [t.get("name", t.get("ta_id")) for t in tas_scheduled]
+            print(f"[SERIALIZER]   {day_str} shift '{shift_id}' "
+                  f"{shift['start'].strftime('%H:%M')}-{shift['end'].strftime('%H:%M')}: "
+                  f"{len(tas_scheduled)} TAs -> {ta_names}")
 
         output[day_str].append({
             "shift_id":          shift_id,
@@ -218,6 +264,7 @@ def serialize_schedule(ctx, schedule):
             "staffing_capacity": serialize_staffing(shift["staffing"]),
         })
 
+    print(f"[SERIALIZER] Total: {total_assignments} TA assignments across {len(ctx.shift_metadata)} shifts")
     return output
 
 def serialize_staffing(staffing_tuple):
