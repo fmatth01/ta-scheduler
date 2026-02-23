@@ -65,20 +65,6 @@ display_results(ctx, schedule, hours_assigned, score)
 print("\n--- FULL SCHEDULE COST ---")
 print(calculate_cost(ctx, hours_assigned))
 
-# # ============================================================
-# # REDUCE SCHEDULE
-# # ============================================================
-
-# print("\n--- REDUCED SCHEDULE ---")
-# target_budget = calculate_cost(ctx, hours_assigned) * 0.8
-# reduced_schedule, reduced_hours = reduce_schedule(ctx, schedule, hours_assigned, target_budget)
-
-# print("\n--- REDUCED SCHEDULE ASSIGNMENTS ---")
-# display_results(ctx, reduced_schedule, reduced_hours, score)
-
-# print("\n--- REDUCED SCHEDULE COST ---")
-# print(calculate_cost(ctx, reduced_hours))
-
 # ============================================================
 # POST FILLED SCHEDULE BACK TO DB
 # ============================================================
