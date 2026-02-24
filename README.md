@@ -289,10 +289,6 @@ The algorithm will:
 
 ---
 
-## 🔌 API Documentation
-
-See [BACKEND_API.md](./BACKEND_API.md) for complete API reference.
-
 ### Quick Reference
 
 **TA Routes (`/ta`)**
@@ -308,10 +304,6 @@ See [BACKEND_API.md](./BACKEND_API.md) for complete API reference.
 - `POST /create` - Create a new shift
 
 ---
-
-## 🧮 Algorithm Details
-
-See [ALGORITHM.md](./ALGORITHM.md) for in-depth explanation.
 
 ### Optimization Approach
 
