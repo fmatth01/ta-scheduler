@@ -1,5 +1,7 @@
 # TA Scheduler 
 
+https://devpost.com/software/ispyscheduling
+
 **TA Scheduler** is a full-stack web application built for JumboHack 2026 that intelligently assigns Teaching Assistants (TAs) to shifts based on their preferences, availability, and staffing requirements. The system uses optimization algorithms (simulated annealing and greedy approaches) to create fair, efficient schedules while respecting constraints like lab permissions and staffing capacity.
 
 ## 🌟 Features
